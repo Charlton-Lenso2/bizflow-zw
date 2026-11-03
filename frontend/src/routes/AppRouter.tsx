@@ -6,6 +6,7 @@ import { BusinessOnboardingPage } from '../features/business/pages/BusinessOnboa
 import { DashboardPage } from '../features/dashboard/pages/DashboardPage'
 import { useAuth } from '../features/auth/hooks/useAuth'
 import { LoadingState } from '../components/ui/LoadingState'
+import { AppLayout } from '../components/layout/AppLayout'
 import { ProtectedRoute } from './ProtectedRoute'
 
 function PublicRoute({ children }: { children: ReactNode }) {
@@ -43,8 +44,22 @@ export function AppRouter() {
       />
 
       <Route element={<ProtectedRoute />}>
-        <Route path="/dashboard" element={<DashboardPage />} />
-        <Route path="/onboarding" element={<BusinessOnboardingPage />} />
+        <Route
+          path="/dashboard"
+          element={
+            <AppLayout>
+              <DashboardPage />
+            </AppLayout>
+          }
+        />
+        <Route
+          path="/onboarding"
+          element={
+            <AppLayout>
+              <BusinessOnboardingPage />
+            </AppLayout>
+          }
+        />
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
       </Route>
 
