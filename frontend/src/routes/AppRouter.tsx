@@ -1,0 +1,54 @@
+import type { ReactNode } from 'react'
+import { Navigate, Route, Routes } from 'react-router-dom'
+import { LoginPage } from '../features/auth/pages/LoginPage'
+import { SignupPage } from '../features/auth/pages/SignupPage'
+import { BusinessOnboardingPage } from '../features/business/pages/BusinessOnboardingPage'
+import { DashboardPage } from '../features/dashboard/pages/DashboardPage'
+import { useAuth } from '../features/auth/hooks/useAuth'
+import { LoadingState } from '../components/ui/LoadingState'
+import { ProtectedRoute } from './ProtectedRoute'
+
+function PublicRoute({ children }: { children: ReactNode }) {
+  const { session, isLoading } = useAuth()
+
+  if (isLoading) {
+    return <LoadingState message="Preparing the application..." />
+  }
+
+  if (session) {
+    return <Navigate to="/dashboard" replace />
+  }
+
+  return children
+}
+
+export function AppRouter() {
+  return (
+    <Routes>
+      <Route
+        path="/login"
+        element={
+          <PublicRoute>
+            <LoginPage />
+          </PublicRoute>
+        }
+      />
+      <Route
+        path="/signup"
+        element={
+          <PublicRoute>
+            <SignupPage />
+          </PublicRoute>
+        }
+      />
+
+      <Route element={<ProtectedRoute />}>
+        <Route path="/dashboard" element={<DashboardPage />} />
+        <Route path="/onboarding" element={<BusinessOnboardingPage />} />
+        <Route path="/" element={<Navigate to="/dashboard" replace />} />
+      </Route>
+
+      <Route path="*" element={<Navigate to="/login" replace />} />
+    </Routes>
+  )
+}
