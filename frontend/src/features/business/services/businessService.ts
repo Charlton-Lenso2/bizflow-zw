@@ -1,3 +1,4 @@
+
 import { supabase } from '../../../lib/supabase'
 import type { BusinessCreateInput, BusinessMembership, BusinessRecord } from '../types/business'
 
@@ -24,24 +25,44 @@ export async function fetchBusinessMembershipsForUser(userId: string): Promise<B
   })
 }
 
-export async function createBusinessRecord(input: BusinessCreateInput, userId: string): Promise<BusinessRecord> {
-  const { data, error } = await supabase
+export async function createBusinessRecord(input: BusinessCreateInput): Promise<BusinessRecord> {
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser()
+
+  if (userError || !user) {
+    throw new Error('You must be signed in to create a business.')
+  }
+
+  const businessId = crypto.randomUUID()
+
+  const payload = {
+    id: businessId,
+    name: input.name,
+    business_type: input.business_type,
+    phone: input.phone ?? null,
+    address: input.address ?? null,
+    default_currency: input.default_currency ?? 'USD',
+    created_by: user.id,
+  }
+
+  const { error: insertError } = await supabase
     .from('businesses')
-    .insert([
-      {
-        name: input.name,
-        business_type: input.business_type,
-        phone: input.phone ?? null,
-        address: input.address ?? null,
-        default_currency: input.default_currency ?? 'USD',
-        created_by: userId,
-      },
-    ])
+    .insert([payload])
+
+  if (insertError) {
+    throw insertError
+  }
+
+  const { data, error: fetchError } = await supabase
+    .from('businesses')
     .select('*')
+    .eq('id', businessId)
     .single()
 
-  if (error) {
-    throw error
+  if (fetchError) {
+    throw fetchError
   }
 
   return data as BusinessRecord
