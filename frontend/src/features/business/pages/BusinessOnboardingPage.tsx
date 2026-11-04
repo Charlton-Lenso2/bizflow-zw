@@ -37,9 +37,15 @@ export function BusinessOnboardingPage() {
 
       navigate('/dashboard', { replace: true })
     } catch (submitError) {
-      const message =
-        submitError instanceof Error ? submitError.message : 'Business creation failed. Please try again.'
-      setError(message)
+      const maybeMessage =
+        submitError && typeof submitError === 'object' && 'message' in submitError && typeof submitError.message === 'string'
+          ? submitError.message
+          : submitError instanceof Error
+            ? submitError.message
+            : ''
+
+      const safeMessage = maybeMessage?.trim() ? maybeMessage : 'Business creation failed. Please try again.'
+      setError(safeMessage)
     } finally {
       setIsSubmitting(false)
     }

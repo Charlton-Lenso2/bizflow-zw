@@ -1,27 +1,29 @@
 import type { ReactNode } from 'react'
 import { Menu, Bell, ChevronDown, Sparkles } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../features/auth/hooks/useAuth'
 import { useBusiness } from '../../features/business/hooks/useActiveBusiness'
 import { ThemeSwitcher } from '../ui/ThemeSwitcher'
 
 const navItems = [
-  'Dashboard',
-  'Products',
-  'Inventory',
-  'Sales',
-  'Customers',
-  'Suppliers',
-  'Packaging',
-  'Credit',
-  'Reports',
-  'Settings',
-]
+  { label: 'Dashboard', route: '/dashboard', enabled: true },
+  { label: 'Products', route: '/catalogue', enabled: true },
+  { label: 'Inventory', route: null, enabled: false },
+  { label: 'Sales', route: null, enabled: false },
+  { label: 'Customers', route: null, enabled: false },
+  { label: 'Suppliers', route: null, enabled: false },
+  { label: 'Packaging', route: null, enabled: false },
+  { label: 'Credit', route: null, enabled: false },
+  { label: 'Reports', route: null, enabled: false },
+  { label: 'Settings', route: null, enabled: false },
+] as const
 
 type AppLayoutProps = {
   children: ReactNode
 }
 
 export function AppLayout({ children }: AppLayoutProps) {
+  const navigate = useNavigate()
   const { user } = useAuth()
   const { activeBusiness } = useBusiness()
 
@@ -40,20 +42,34 @@ export function AppLayout({ children }: AppLayoutProps) {
           </div>
 
           <nav className="mt-6 space-y-1.5">
-            {navItems.map((item, index) => (
-              <button
-                key={item}
-                type="button"
-                className={`flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-sm font-medium transition ${
-                  index === 0
-                    ? 'bg-slate-900 text-white shadow-sm dark:bg-slate-100 dark:text-slate-900'
-                    : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white'
-                }`}
-              >
-                <span>{item}</span>
-                {index === 0 ? <Sparkles className="h-4 w-4" /> : null}
-              </button>
-            ))}
+            {navItems.map((item, index) => {
+              const isSelected = item.route === '/dashboard' || item.route === '/catalogue'
+
+              return (
+                <button
+                  key={item.label}
+                  type="button"
+                  disabled={!item.enabled}
+                  onClick={() => {
+                    if (item.enabled && item.route) {
+                      navigate(item.route)
+                    }
+                  }}
+                  className={`flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-sm font-medium transition ${
+                    item.enabled
+                      ? isSelected
+                        ? 'bg-slate-900 text-white shadow-sm dark:bg-slate-100 dark:text-slate-900'
+                        : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white'
+                      : 'cursor-not-allowed text-slate-400 dark:text-slate-500'
+                  }`}
+                  aria-label={item.enabled ? item.label : `${item.label} coming soon`}
+                >
+                  <span>{item.label}</span>
+                  {item.enabled && index === 0 ? <Sparkles className="h-4 w-4" /> : null}
+                  {!item.enabled ? <span className="text-[10px] uppercase tracking-[0.16em]">Soon</span> : null}
+                </button>
+              )
+            })}
           </nav>
 
           <div className="mt-auto rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-800/60">

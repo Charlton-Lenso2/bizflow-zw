@@ -141,7 +141,7 @@ export function BusinessProvider({ children }: { children: ReactNode }) {
         return null
       }
 
-      const createdBusiness = await createBusinessRecord(input, userId)
+      const createdBusiness = await createBusinessRecord(input)
       await refreshBusinesses()
       setActiveBusinessId(createdBusiness.id)
 

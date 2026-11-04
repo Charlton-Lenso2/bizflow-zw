@@ -4,6 +4,7 @@ import { LoginPage } from '../features/auth/pages/LoginPage'
 import { SignupPage } from '../features/auth/pages/SignupPage'
 import { BusinessOnboardingPage } from '../features/business/pages/BusinessOnboardingPage'
 import { DashboardPage } from '../features/dashboard/pages/DashboardPage'
+import { CataloguePage } from '../features/catalogue/pages/CataloguePage'
 import { useAuth } from '../features/auth/hooks/useAuth'
 import { LoadingState } from '../components/ui/LoadingState'
 import { AppLayout } from '../components/layout/AppLayout'
@@ -49,6 +50,14 @@ export function AppRouter() {
           element={
             <AppLayout>
               <DashboardPage />
+            </AppLayout>
+          }
+        />
+        <Route
+          path="/catalogue"
+          element={
+            <AppLayout>
+              <CataloguePage />
             </AppLayout>
           }
         />
