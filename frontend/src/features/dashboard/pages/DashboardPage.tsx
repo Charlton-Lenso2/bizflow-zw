@@ -5,6 +5,7 @@ import { Alert } from '../../../components/ui/Alert'
 import { Button } from '../../../components/ui/Button'
 import { LoadingState } from '../../../components/ui/LoadingState'
 import { BusinessSelector } from '../../business/components/BusinessSelector'
+import { BrandingPanel } from '../../business/components/BrandingPanel'
 import { useBusiness } from '../../business/hooks/useActiveBusiness'
 import { useAuth } from '../../auth/hooks/useAuth'
 import { fetchDashboardSummary } from '../services/dashboardService'
@@ -168,6 +169,8 @@ export function DashboardPage() {
 
       {activeBusiness ? (
         <>
+          <BrandingPanel key={activeBusiness.id} business={activeBusiness} />
+
           <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
             {metricCards.map(({ label, value, detail, tone, icon: Icon }) => (
               <div

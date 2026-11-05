@@ -18,13 +18,14 @@ export function BusinessSelector() {
   }
 
   return (
-    <div className="flex flex-col gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-3 sm:flex-row sm:items-center sm:justify-between">
-      <label className="flex flex-col gap-1 text-sm font-medium text-slate-700">
+    <div className="flex flex-col gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-3 sm:flex-row sm:items-center sm:justify-between dark:border-slate-700 dark:bg-slate-900/70">
+      <label className="flex flex-col gap-1 text-sm font-medium text-slate-700 dark:text-slate-200">
         Active business
         <select
           value={activeBusinessId ?? ''}
           onChange={(event) => selectBusiness(event.target.value || null)}
-          className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-100"
+          className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
+          style={{ boxShadow: '0 0 0 1px rgba(0,0,0,0.02)' }}
         >
           {businessEntries.map((membership) => (
             <option key={membership.business_id} value={membership.business_id}>

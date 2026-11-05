@@ -1,6 +1,12 @@
 @import "tailwindcss";
 
 :root {
+  --brand-primary: #1d4ed8;
+  --brand-primary-contrast: #ffffff;
+  --brand-accent: #f59e0b;
+  --brand-accent-contrast: #0f172a;
+  --brand-highlight: #dbeafe;
+  --brand-surface: #f8fafc;
   color: #0f172a;
   background-color: #f8fafc;
   font-family: Inter, "Segoe UI", sans-serif;
@@ -16,10 +22,18 @@ html {
   background-color: #f8fafc;
 }
 
+html.dark {
+  color-scheme: dark;
+}
+
 body {
   margin: 0;
   min-height: 100vh;
-  background: #f8fafc;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(248, 250, 252, 1));
+}
+
+html.dark body {
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.92), rgba(2, 6, 23, 1));
 }
 
 * {
@@ -28,6 +42,11 @@ body {
 
 button,
 input,
-select {
+select,
+textarea {
   font: inherit;
+}
+
+::selection {
+  background: var(--brand-highlight);
 }

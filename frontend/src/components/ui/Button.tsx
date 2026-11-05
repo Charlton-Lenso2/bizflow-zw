@@ -8,12 +8,22 @@ type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
   children: ReactNode
 }
 
-const variantClasses: Record<ButtonVariant, string> = {
-  primary:
-    'bg-slate-900 text-white shadow-sm hover:bg-slate-800 disabled:bg-slate-300',
-  secondary:
-    'bg-slate-100 text-slate-900 shadow-sm hover:bg-slate-200 disabled:bg-slate-200',
-  ghost: 'bg-transparent text-slate-700 hover:bg-slate-100 disabled:text-slate-400',
+const variantStyles: Record<ButtonVariant, Record<string, string>> = {
+  primary: {
+    background: 'var(--brand-primary)',
+    color: 'var(--brand-primary-contrast)',
+    borderColor: 'var(--brand-primary)',
+  },
+  secondary: {
+    background: 'var(--brand-highlight)',
+    color: 'var(--brand-primary)',
+    borderColor: 'var(--brand-primary)',
+  },
+  ghost: {
+    background: 'transparent',
+    color: 'var(--brand-primary)',
+    borderColor: 'transparent',
+  },
 }
 
 export function Button({
@@ -22,13 +32,18 @@ export function Button({
   className = '',
   disabled,
   children,
+  style,
   ...props
 }: ButtonProps) {
   return (
     <button
       type="button"
       disabled={disabled || isLoading}
-      className={`inline-flex items-center justify-center rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-medium transition focus:outline-none focus:ring-2 focus:ring-slate-300 disabled:cursor-not-allowed ${variantClasses[variant]} ${className}`}
+      className={`inline-flex items-center justify-center rounded-xl border px-4 py-2.5 text-sm font-medium transition focus:outline-none focus:ring-2 focus:ring-slate-300 disabled:cursor-not-allowed ${className}`}
+      style={{
+        ...variantStyles[variant],
+        ...style,
+      }}
       {...props}
     >
       {isLoading ? (
