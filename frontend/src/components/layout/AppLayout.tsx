@@ -1,6 +1,6 @@
 import { useEffect, useMemo, type ReactNode } from 'react'
 import { Menu, Bell, ChevronDown, Sparkles } from 'lucide-react'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../features/auth/hooks/useAuth'
 import { useBusiness } from '../../features/business/hooks/useActiveBusiness'
 import { applyBrandPalette, getBusinessBranding } from '../../features/business/utils/brandPalette'
@@ -9,7 +9,7 @@ import { ThemeSwitcher } from '../ui/ThemeSwitcher'
 const navItems = [
   { label: 'Dashboard', route: '/dashboard', enabled: true },
   { label: 'Products', route: '/catalogue', enabled: true },
-  { label: 'Inventory', route: null, enabled: false },
+  { label: 'Inventory', route: '/inventory', enabled: true },
   { label: 'Sales', route: null, enabled: false },
   { label: 'Customers', route: null, enabled: false },
   { label: 'Suppliers', route: null, enabled: false },
@@ -25,6 +25,7 @@ type AppLayoutProps = {
 
 export function AppLayout({ children }: AppLayoutProps) {
   const navigate = useNavigate()
+  const location = useLocation()
   const { user } = useAuth()
   const { activeBusiness } = useBusiness()
   const activeBranding = useMemo(
@@ -41,7 +42,7 @@ export function AppLayout({ children }: AppLayoutProps) {
   return (
     <div className="min-h-screen bg-slate-100 text-slate-900 transition-colors dark:bg-slate-950 dark:text-slate-100">
       <div className="mx-auto flex min-h-screen max-w-[1600px] p-3 lg:p-4">
-        <aside className="hidden w-[280px] shrink-0 rounded-[28px] border border-slate-200 bg-white/85 p-5 shadow-[0_18px_45px_rgba(15,23,42,0.06)] backdrop-blur dark:border-slate-800 dark:bg-slate-900/85 lg:flex lg:flex-col">
+        <aside className="hidden w-70 shrink-0 rounded-[28px] border border-slate-200 bg-white/85 p-5 shadow-[0_18px_45px_rgba(15,23,42,0.06)] backdrop-blur dark:border-slate-800 dark:bg-slate-900/85 lg:flex lg:flex-col">
           <div className="flex items-center gap-3 border-b border-slate-200 pb-5 dark:border-slate-800">
             <div
               className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-2xl text-sm font-semibold text-white shadow-sm"
@@ -64,7 +65,7 @@ export function AppLayout({ children }: AppLayoutProps) {
 
           <nav className="mt-6 space-y-1.5">
             {navItems.map((item, index) => {
-              const isSelected = item.route === '/dashboard' || item.route === '/catalogue'
+              const isSelected = item.route === location.pathname
 
               return (
                 <button
