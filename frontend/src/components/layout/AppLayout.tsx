@@ -12,7 +12,7 @@ const navItems = [
   { label: 'Inventory', route: '/inventory', enabled: true },
   { label: 'Pos', route: '/pos', enabled: true },
   { label: 'Sales', route: '/sales', enabled: true },
-  { label: 'Customers', route: null, enabled: false },
+  { label: 'Customers', route: '/customers', enabled: true },
   { label: 'Suppliers', route: null, enabled: false },
   { label: 'Packaging', route: null, enabled: false },
   { label: 'Credit', route: null, enabled: false },

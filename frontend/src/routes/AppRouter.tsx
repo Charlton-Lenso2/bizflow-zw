@@ -6,6 +6,8 @@ import { BusinessOnboardingPage } from '../features/business/pages/BusinessOnboa
 import { DashboardPage } from '../features/dashboard/pages/DashboardPage'
 import { CataloguePage } from '../features/catalogue/pages/CataloguePage'
 import { InventoryPage } from '../features/inventory/pages/InventoryPage'
+import { CustomerDirectoryPage } from '../features/customers/pages/CustomerDirectoryPage'
+import { CustomerDetailPage } from '../features/customers/pages/CustomerDetailPage'
 import { POSPage } from '../features/sales/pages/POSPage'
 import { SalesPage } from '../features/sales/pages/SalesPage'
 import { SaleDetailPage } from '../features/sales/pages/SaleDetailPage'
@@ -78,6 +80,22 @@ export function AppRouter() {
           element={
             <AppLayout>
               <POSPage />
+            </AppLayout>
+          }
+        />
+        <Route
+          path="/customers"
+          element={
+            <AppLayout>
+              <CustomerDirectoryPage />
+            </AppLayout>
+          }
+        />
+        <Route
+          path="/customers/:customerId"
+          element={
+            <AppLayout>
+              <CustomerDetailPage />
             </AppLayout>
           }
         />
