@@ -6,6 +6,9 @@ import { BusinessOnboardingPage } from '../features/business/pages/BusinessOnboa
 import { DashboardPage } from '../features/dashboard/pages/DashboardPage'
 import { CataloguePage } from '../features/catalogue/pages/CataloguePage'
 import { InventoryPage } from '../features/inventory/pages/InventoryPage'
+import { POSPage } from '../features/sales/pages/POSPage'
+import { SalesPage } from '../features/sales/pages/SalesPage'
+import { SaleDetailPage } from '../features/sales/pages/SaleDetailPage'
 import { useAuth } from '../features/auth/hooks/useAuth'
 import { LoadingState } from '../components/ui/LoadingState'
 import { AppLayout } from '../components/layout/AppLayout'
@@ -67,6 +70,30 @@ export function AppRouter() {
           element={
             <AppLayout>
               <InventoryPage />
+            </AppLayout>
+          }
+        />
+        <Route
+          path="/pos"
+          element={
+            <AppLayout>
+              <POSPage />
+            </AppLayout>
+          }
+        />
+        <Route
+          path="/sales"
+          element={
+            <AppLayout>
+              <SalesPage />
+            </AppLayout>
+          }
+        />
+        <Route
+          path="/sales/:saleId"
+          element={
+            <AppLayout>
+              <SaleDetailPage />
             </AppLayout>
           }
         />
