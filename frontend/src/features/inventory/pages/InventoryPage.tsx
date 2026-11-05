@@ -126,16 +126,18 @@ export function InventoryPage() {
     adjustmentFormSnapshotRef.current = adjustmentForm
   }, [adjustmentForm, isAdjustmentConfirmationVisible])
 
-  const loadInventory = useCallback(async () => {
+  const loadInventory = useCallback(async (options?: { suppressError?: boolean }): Promise<boolean> => {
     if (!activeBusinessId) {
       setOverview(null)
       setMovements([])
       setSelectedVariantId(null)
-      return
+      return true
     }
 
     setIsLoading(true)
-    setErrorMessage(null)
+    if (!options?.suppressError) {
+      setErrorMessage(null)
+    }
 
     try {
       const [nextOverview, nextMovements] = await Promise.all([
@@ -154,12 +156,16 @@ export function InventoryPage() {
       })
       setIsOpeningConfirmationVisible(false)
       setIsAdjustmentConfirmationVisible(false)
+      return true
     } catch (error) {
       console.error('Failed to load inventory', error)
       setOverview(null)
       setMovements([])
       setSelectedVariantId(null)
-      setErrorMessage(error instanceof Error ? error.message : 'Unable to load inventory for this business.')
+      if (!options?.suppressError) {
+        setErrorMessage(error instanceof Error ? error.message : 'Unable to load inventory for this business.')
+      }
+      return false
     } finally {
       setIsLoading(false)
     }
@@ -280,8 +286,13 @@ export function InventoryPage() {
       await recordOpeningStock(activeBusinessId, openingForm.variantId, quantity, openingForm.notes)
       setOpeningForm({ variantId: '', quantity: '', notes: '' })
       setIsOpeningConfirmationVisible(false)
-      await loadInventory()
-      setSuccessMessage('Opening stock recorded successfully.')
+      setErrorMessage(null)
+      const refreshSucceeded = await loadInventory({ suppressError: true })
+      if (refreshSucceeded) {
+        setSuccessMessage('Opening stock recorded successfully.')
+      } else {
+        setSuccessMessage('Opening stock recorded successfully. The inventory could not be refreshed right now, but the movement was saved.')
+      }
     } catch (error) {
       console.error('Opening stock save failed', error)
       setErrorMessage(error instanceof Error ? error.message : 'The opening stock could not be recorded.')
@@ -344,8 +355,13 @@ export function InventoryPage() {
 
       setAdjustmentForm({ variantId: '', direction: 'increase', quantity: '', notes: '' })
       setIsAdjustmentConfirmationVisible(false)
-      await loadInventory()
-      setSuccessMessage('Stock adjustment recorded successfully.')
+      setErrorMessage(null)
+      const refreshSucceeded = await loadInventory({ suppressError: true })
+      if (refreshSucceeded) {
+        setSuccessMessage('Stock adjustment recorded successfully.')
+      } else {
+        setSuccessMessage('Stock adjustment recorded successfully. The inventory could not be refreshed right now, but the movement was saved.')
+      }
     } catch (error) {
       console.error('Stock adjustment failed', error)
       setErrorMessage(error instanceof Error ? error.message : 'The stock adjustment could not be recorded.')
@@ -658,15 +674,26 @@ export function InventoryPage() {
                   </Button>
 
                   {isAdjustmentConfirmationVisible ? (
-                    <div className="rounded-2xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900 dark:border-amber-800 dark:bg-amber-900/20 dark:text-amber-100">
-                      <p className="font-medium">Confirm this stock adjustment</p>
-                      <p className="mt-1">
-                        {adjustmentPreview?.productName} · {adjustmentPreview?.variantLabel}
-                      </p>
-                      <p className="mt-1">Current stock: {adjustmentPreview?.currentBalance ?? 0} crates</p>
-                      <p className="mt-1">{adjustmentPreview?.label}</p>
-                      <p className="mt-1">Projected stock: {adjustmentPreview?.nextBalance ?? 0} crates</p>
-                      <p className="mt-1">Reason: {adjustmentForm.notes.trim()}</p>
+                    <div className="space-y-3 rounded-2xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900 dark:border-amber-800 dark:bg-amber-900/20 dark:text-amber-100">
+                      <div>
+                        <p className="font-medium">Confirm this stock adjustment</p>
+                        <p className="mt-1">
+                          {adjustmentPreview?.productName} · {adjustmentPreview?.variantLabel}
+                        </p>
+                        <p className="mt-1">Current stock: {adjustmentPreview?.currentBalance ?? 0} crates</p>
+                        <p className="mt-1">{adjustmentPreview?.label}</p>
+                        <p className="mt-1">Projected stock: {adjustmentPreview?.nextBalance ?? 0} crates</p>
+                        <p className="mt-1">Reason: {adjustmentForm.notes.trim()}</p>
+                      </div>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        className="w-full"
+                        onClick={() => setIsAdjustmentConfirmationVisible(false)}
+                        disabled={isSubmittingAdjustment}
+                      >
+                        Keep editing
+                      </Button>
                     </div>
                   ) : null}
                 </form>
@@ -736,21 +763,32 @@ export function InventoryPage() {
               </Button>
 
               {isOpeningConfirmationVisible ? (
-                <div className="rounded-2xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900 dark:border-amber-800 dark:bg-amber-900/20 dark:text-amber-100">
-                  <p className="font-medium">Confirm this opening stock entry</p>
-                  <p className="mt-1">
-                    {(() => {
-                      const variant = variantOptions.find((item) => item.id === openingForm.variantId)
-                      if (!variant) {
-                        return 'Selected variant'
-                      }
+                <div className="space-y-3 rounded-2xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900 dark:border-amber-800 dark:bg-amber-900/20 dark:text-amber-100">
+                  <div>
+                    <p className="font-medium">Confirm this opening stock entry</p>
+                    <p className="mt-1">
+                      {(() => {
+                        const variant = variantOptions.find((item) => item.id === openingForm.variantId)
+                        if (!variant) {
+                          return 'Selected variant'
+                        }
 
-                      return `${variant.product_name} · ${getVariantSummaryLabel(variant.variant_name, variant.flavour, variant.bottle_size_ml)}`
-                    })()}
-                  </p>
-                  <p className="mt-1">Quantity: {openingForm.quantity} crates</p>
-                  <p className="mt-1">This records the initial stock and should only be done once for the variant.</p>
-                  {openingForm.notes.trim() ? <p className="mt-1">Notes: {openingForm.notes.trim()}</p> : null}
+                        return `${variant.product_name} · ${getVariantSummaryLabel(variant.variant_name, variant.flavour, variant.bottle_size_ml)}`
+                      })()}
+                    </p>
+                    <p className="mt-1">Quantity: {openingForm.quantity} crates</p>
+                    <p className="mt-1">This records the initial stock and should only be done once for the variant.</p>
+                    {openingForm.notes.trim() ? <p className="mt-1">Notes: {openingForm.notes.trim()}</p> : null}
+                  </div>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    className="w-full"
+                    onClick={() => setIsOpeningConfirmationVisible(false)}
+                    disabled={isSubmittingOpening}
+                  >
+                    Keep editing
+                  </Button>
                 </div>
               ) : null}
             </form>

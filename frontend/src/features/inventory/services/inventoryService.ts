@@ -328,6 +328,11 @@ export async function recordStockAdjustment(
   ensureBusinessScope(businessId)
   await assertVariantBelongsToBusiness(businessId, variantId)
 
+  const trimmedNotes = notes?.trim() ?? ''
+  if (!trimmedNotes) {
+    throw new Error('A reason is required for every stock adjustment.')
+  }
+
   const safeQuantity = toPositiveInteger(quantity, 'Adjustment quantity')
   const directionValue = direction === 'increase' ? 1 : -1
 
@@ -364,7 +369,7 @@ export async function recordStockAdjustment(
     source_type: null,
     source_id: null,
     created_by: userData.user.id,
-    notes: notes?.trim() ? notes.trim() : null,
+    notes: trimmedNotes,
   }
 
   const { error } = await supabase.from('inventory_movements').insert([payload])
