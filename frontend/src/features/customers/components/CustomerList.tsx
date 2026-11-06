@@ -29,7 +29,6 @@ export function CustomerList({ customers, filters, onFilterChange, onView, onEdi
         customer.full_name,
         customer.business_name,
         customer.phone,
-        customer.email,
       ]
         .filter(Boolean)
         .join(' ')
@@ -46,7 +45,7 @@ export function CustomerList({ customers, filters, onFilterChange, onView, onEdi
             type="text"
             value={localSearch}
             onChange={(e) => setLocalSearch(e.target.value)}
-            placeholder="Search name, phone, email…"
+            placeholder="Search name, phone…"
             className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 pl-9 text-sm text-slate-900 shadow-sm outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-100 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
             aria-label="Search customers"
           />

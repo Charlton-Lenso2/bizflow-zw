@@ -35,7 +35,7 @@ export async function fetchWalkInCustomer(businessId: string): Promise<CustomerR
 
   const { data, error } = await supabase
     .from('customers')
-    .select('id, business_id, full_name, business_name, phone, email, address, credit_limit, is_active, created_at, updated_at')
+    .select('id, business_id, full_name, business_name, phone, address, is_active, created_at, updated_at')
     .eq('business_id', businessId)
     .eq('full_name', 'Walk-in Customer')
     .single()
@@ -54,7 +54,7 @@ export async function fetchCustomersForBusiness(businessId: string): Promise<Cus
 
   const { data, error } = await supabase
     .from('customers')
-    .select('id, business_id, full_name, business_name, phone, email, address, credit_limit, is_active, created_at, updated_at')
+    .select('id, business_id, full_name, business_name, phone, address, is_active, created_at, updated_at')
     .eq('business_id', businessId)
     .order('full_name', { ascending: true })
 
@@ -71,7 +71,7 @@ export async function fetchAllCustomersForBusiness(businessId: string): Promise<
 
   const { data, error } = await supabase
     .from('customers')
-    .select('id, business_id, full_name, business_name, phone, email, address, credit_limit, is_active, created_at, updated_at')
+    .select('id, business_id, full_name, business_name, phone, address, is_active, created_at, updated_at')
     .eq('business_id', businessId)
     .order('full_name', { ascending: true })
 
@@ -88,7 +88,7 @@ export async function fetchCustomerById(businessId: string, customerId: string):
 
   const { data, error } = await supabase
     .from('customers')
-    .select('id, business_id, full_name, business_name, phone, email, address, credit_limit, is_active, created_at, updated_at')
+    .select('id, business_id, full_name, business_name, phone, address, is_active, created_at, updated_at')
     .eq('business_id', businessId)
     .eq('id', customerId)
     .single()
@@ -147,7 +147,7 @@ export async function fetchCustomersWithFinancialSummary(businessId: string, sea
   const term = searchTerm.trim()
   const query = supabase
     .from('customers')
-    .select('id, business_id, full_name, business_name, phone, email, address, credit_limit, is_active, created_at, updated_at, customer_id, customer_business_id')
+    .select('id, business_id, full_name, business_name, phone, address, is_active, created_at, updated_at, customer_id, customer_business_id')
     .eq('business_id', businessId)
     .order('full_name', { ascending: true })
 
@@ -207,9 +207,7 @@ export async function createCustomer(input: {
   fullName: string
   businessName?: string | null
   phone?: string | null
-  email?: string | null
-  address?: string | null
-  creditLimit?: number | null
+    address?: string | null
 }): Promise<CustomerRecord | null> {
   ensureBusinessScope(input.businessId)
 
@@ -227,12 +225,9 @@ export async function createCustomer(input: {
       full_name: input.fullName.trim(),
       business_name: input.businessName?.trim() ?? null,
       phone: input.phone?.trim() ?? null,
-      email: input.email?.trim() ?? null,
-      address: input.address?.trim() ?? null,
-      credit_limit: input.creditLimit ?? null,
       is_active: true,
     },
-  ]).select('id, business_id, full_name, business_name, phone, email, address, credit_limit, is_active, created_at, updated_at').single()
+  ]).select('id, business_id, full_name, business_name, phone, address, is_active, created_at, updated_at').single()
 
   if (error) {
     throw error
@@ -248,9 +243,7 @@ export async function updateCustomer(input: {
   fullName: string
   businessName?: string | null
   phone?: string | null
-  email?: string | null
-  address?: string | null
-  creditLimit?: number | null
+    address?: string | null
   isActive?: boolean
 }): Promise<CustomerRecord | null> {
   ensureBusinessScope(input.businessId)
@@ -267,15 +260,13 @@ export async function updateCustomer(input: {
       full_name: input.fullName.trim(),
       business_name: input.businessName?.trim() ?? null,
       phone: input.phone?.trim() ?? null,
-      email: input.email?.trim() ?? null,
       address: input.address?.trim() ?? null,
-      credit_limit: input.creditLimit ?? null,
       is_active: input.isActive ?? true,
       updated_at: new Date().toISOString(),
     })
     .eq('business_id', input.businessId)
     .eq('id', input.customerId)
-    .select('id, business_id, full_name, business_name, phone, email, address, credit_limit, is_active, created_at, updated_at')
+    .select('id, business_id, full_name, business_name, phone, address, is_active, created_at, updated_at')
     .single()
 
   if (error) {

@@ -49,12 +49,6 @@ export function CustomerCard({ customer, onView, onEdit }: CustomerCardProps) {
           <span className="text-slate-500 dark:text-slate-400">Status</span>
           <span className="font-medium text-slate-900 dark:text-white">{getCustomerStatus(customer)}</span>
         </div>
-        {customer.email ? (
-          <div className="flex items-center gap-2">
-            <span className="text-slate-500 dark:text-slate-400">Email</span>
-            <span className="font-medium text-slate-900 dark:text-white truncate">{customer.email}</span>
-          </div>
-        ) : null}
         {customer.address ? (
           <div className="flex items-center gap-2">
             <span className="text-slate-500 dark:text-slate-400">Address</span>

@@ -101,7 +101,6 @@ export function CustomerDirectoryPage() {
         customer.full_name,
         customer.business_name,
         customer.phone,
-        customer.email,
       ]
         .filter(Boolean)
         .join(' ')
