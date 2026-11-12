@@ -4,7 +4,7 @@ export type CustomerRecord = {
   full_name?: string | null
   business_name?: string | null
   phone?: string | null
-  credit_limit?: number | null
+  address?: string | null
   is_active?: boolean | null
 }
 

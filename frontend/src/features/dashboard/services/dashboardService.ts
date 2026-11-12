@@ -3,7 +3,7 @@ import type { DashboardActivityItem, DashboardSummary } from '../types/dashboard
 
 type Row = Record<string, unknown>
 
-const COMPLETED_SALE_STATUSES = new Set(['completed', 'paid', 'closed'])
+const COMPLETED_SALE_STATUSES = new Set(['completed'])
 
 function asNumber(value: unknown, fallback = 0): number {
   if (typeof value === 'number' && Number.isFinite(value)) {
@@ -110,12 +110,12 @@ async function fetchStockOnHand(businessId: string): Promise<{ stockOnHand: numb
 
   for (const row of data) {
     const candidate = getFirstMatch(row as Row, [
+      'quantity_crates',
       'quantity_on_hand',
       'on_hand_quantity',
       'available_quantity',
       'stock_on_hand',
       'total_quantity',
-      'quantity',
       'available_crates',
     ])
 

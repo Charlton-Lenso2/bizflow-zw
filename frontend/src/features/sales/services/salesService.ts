@@ -55,7 +55,7 @@ export async function fetchCustomersForBusiness(businessId: string): Promise<Cus
 
   const { data, error } = await supabase
     .from('customers')
-    .select('id, business_id, full_name, business_name, phone, credit_limit, is_active')
+    .select('id, business_id, full_name, business_name, phone, address, is_active')
     .eq('business_id', businessId)
     .eq('is_active', true)
     .order('full_name', { ascending: true })
@@ -72,7 +72,7 @@ export async function fetchWalkInCustomer(businessId: string): Promise<CustomerR
 
   const { data, error } = await supabase
     .from('customers')
-    .select('id, business_id, full_name, business_name, phone, credit_limit, is_active')
+    .select('id, business_id, full_name, business_name, phone, address, is_active')
     .eq('business_id', businessId)
     .eq('is_active', true)
     .order('full_name', { ascending: true })
@@ -106,11 +106,11 @@ export async function ensureWalkInCustomerForBusiness(businessId: string): Promi
         full_name: 'Walk-in Customer',
         business_name: 'Walk-in Customer',
         phone: null,
-        credit_limit: 0,
+        address: null,
         is_active: true,
       },
     ])
-    .select('id, business_id, full_name, business_name, phone, credit_limit, is_active')
+    .select('id, business_id, full_name, business_name, phone, address, is_active')
     .single()
 
   if (error) {

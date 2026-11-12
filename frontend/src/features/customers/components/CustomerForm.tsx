@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { createCustomer, updateCustomer } from '../../customers/services/index'
 import type { CustomerRecord } from '../../customers/types/customer'
+import { Alert } from '../../../components/ui/Alert'
 
 type CustomerFormProps = {
   initial?: CustomerRecord | null
@@ -15,9 +16,11 @@ export function CustomerForm({ initial, businessId, onSaved, onCancel }: Custome
   const [phone, setPhone] = useState(initial?.phone ?? '')
   const [address, setAddress] = useState(initial?.address ?? '')
   const [saving, setSaving] = useState(false)
+  const [saveError, setSaveError] = useState<string | null>(null)
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault()
+    setSaveError(null)
     setSaving(false)
 
     if (!fullName.trim()) {
@@ -48,8 +51,9 @@ export function CustomerForm({ initial, businessId, onSaved, onCancel }: Custome
       }
       onSaved()
     } catch (err) {
+      const message = err instanceof Error ? err.message : 'The customer could not be saved.'
+      setSaveError(message)
       console.error('Failed to save customer', err)
-err instanceof Error ? err.message : 'The customer could not be saved.'
     } finally {
       setSaving(false)
     }
@@ -97,6 +101,11 @@ err instanceof Error ? err.message : 'The customer could not be saved.'
           placeholder="Street address (optional)"
         />
       </div>
+      {saveError ? (
+        <Alert variant="error" title="Unable to save customer">
+          {saveError}
+        </Alert>
+      ) : null}
       <div className="flex justify-end space-x-2">
         <button
           type="submit"
