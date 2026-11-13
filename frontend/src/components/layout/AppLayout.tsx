@@ -13,11 +13,11 @@ const navItems = [
   { label: 'Pos', route: '/pos', enabled: true },
   { label: 'Sales', route: '/sales', enabled: true },
   { label: 'Customers', route: '/customers', enabled: true },
-  { label: 'Suppliers', route: null, enabled: false },
-  { label: 'Packaging', route: null, enabled: false },
-  { label: 'Credit', route: null, enabled: false },
-  { label: 'Reports', route: null, enabled: false },
-  { label: 'Settings', route: null, enabled: false },
+  { label: 'AI Assistant', route: '/ai', enabled: true },
+  { label: 'Packaging', route: '/packaging', enabled: true },
+  { label: 'Credit', route: '/credit', enabled: true },
+  { label: 'Reports', route: '/reports', enabled: true },
+  { label: 'Settings', route: '/settings', enabled: true },
 ] as const
 
 type AppLayoutProps = {
@@ -41,10 +41,10 @@ export function AppLayout({ children }: AppLayoutProps) {
   const initials = activeBusiness?.name ? activeBusiness.name.slice(0, 2).toUpperCase() : 'BZ'
 
   return (
-    <div className="min-h-screen bg-slate-100 text-slate-900 transition-colors dark:bg-slate-950 dark:text-slate-100">
+    <div className="min-h-screen bg-background text-foreground transition-colors dark:bg-slate-950 dark:text-slate-100">
       <div className="mx-auto flex min-h-screen max-w-[1600px] p-3 lg:p-4">
-        <aside className="hidden w-70 shrink-0 rounded-[28px] border border-slate-200 bg-white/85 p-5 shadow-[0_18px_45px_rgba(15,23,42,0.06)] backdrop-blur dark:border-slate-800 dark:bg-slate-900/85 lg:flex lg:flex-col">
-          <div className="flex items-center gap-3 border-b border-slate-200 pb-5 dark:border-slate-800">
+        <aside className="hidden w-70 shrink-0 rounded-[28px] border-border p-5 shadow-sm shadow-[0_18px_45px_rgba(15,23,42,0.06)] backdrop-blur dark:border-border dark:bg-slate-900 lg:flex lg:flex-col">
+          <div className="flex items-center gap-3 border-border pb-5 dark:border-border-dark">
             <div
               className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-2xl text-sm font-semibold text-white shadow-sm"
               style={{
@@ -60,7 +60,7 @@ export function AppLayout({ children }: AppLayoutProps) {
             </div>
             <div>
               <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">BizFlow</p>
-              <h1 className="text-base font-semibold text-slate-900 dark:text-white">ZW</h1>
+              <h1 className="text-base font-semibold text-foreground dark:text-white">ZW</h1>
             </div>
           </div>
 
@@ -103,9 +103,9 @@ export function AppLayout({ children }: AppLayoutProps) {
             })}
           </nav>
 
-          <div className="mt-auto rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-800/60">
+          <div className="mt-auto rounded-2xl border-border p-4 dark:border-border dark:bg-slate-800/60">
             <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">Active business</p>
-            <p className="mt-2 text-sm font-semibold text-slate-900 dark:text-white">
+            <p className="mt-2 text-sm font-semibold text-foreground dark:text-white">
               {activeBusiness?.name ?? 'No business'}
             </p>
           </div>
@@ -117,14 +117,14 @@ export function AppLayout({ children }: AppLayoutProps) {
               <div className="flex items-center gap-3">
                 <button
                   type="button"
-                  className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 text-slate-700 transition hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 lg:hidden"
+                  className="inline-flex h-10 w-10 items-center justify-center rounded-xl border-border bg-background text-slate-600 transition hover:bg-[var(--color-border)] data-[state=active]:bg-[var(--color-border)] data-[state=active]:text-[var(--color-primary-foreground)] dark:border-border dark:text-slate-400 lg:hidden"
                   aria-label="Open menu"
                 >
                   <Menu className="h-4 w-4" />
                 </button>
 
-                <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-1.5 text-sm dark:border-slate-700 dark:bg-slate-800">
-                  <span className="font-medium text-slate-700 dark:text-slate-200">Workspace</span>
+                <div className="rounded-xl border-border bg-background px-3 py-1.5 text-sm dark:border-border-dark dark:bg-slate-800">
+                  <span className="font-medium text-slate-600 dark:text-slate-300">Workspace</span>
                 </div>
               </div>
 
@@ -135,7 +135,7 @@ export function AppLayout({ children }: AppLayoutProps) {
 
                 <button
                   type="button"
-                  className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 text-slate-700 transition hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
+                  className="inline-flex h-10 w-10 items-center justify-center rounded-xl border-border bg-background text-slate-600 transition hover:bg-[var(--color-border)] dark:border-border dark:text-slate-400"
                   aria-label="Notifications"
                 >
                   <Bell className="h-4 w-4" />

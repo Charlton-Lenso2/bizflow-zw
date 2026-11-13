@@ -13,9 +13,12 @@ export type CustomerRecord = {
 export type CustomerFilterStatus = 'all' | 'active' | 'inactive'
 
 export type CustomerSearchResult = CustomerRecord & {
-  current_outstanding_balance: number
-  total_sales: number
-  total_payments: number
+  current_outstanding_balance_usd: number
+  current_outstanding_balance_zwg: number
+  total_sales_usd: number
+  total_sales_zwg: number
+  total_payments_usd: number
+  total_payments_zwg: number
 }
 
 export type CustomerLedgerEntry = {
@@ -23,9 +26,10 @@ export type CustomerLedgerEntry = {
   customer_id?: string | null
   business_id?: string | null
   amount?: number | null
+  currency?: 'USD' | 'ZWG' | null
   payment_method?: string | null
   reference?: string | null
-  entry_type?: string | null
+  entry_type?: 'sale_charge' | 'payment' | 'adjustment' | null
   created_at?: string | null
 }
 

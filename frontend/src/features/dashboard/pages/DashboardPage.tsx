@@ -23,10 +23,10 @@ const navigationItems = [
 ]
 
 const metricStyles = {
-  neutral: 'border-slate-200 bg-slate-50 text-slate-700',
-  info: 'border-sky-200 bg-sky-50 text-sky-700',
-  success: 'border-emerald-200 bg-emerald-50 text-emerald-700',
-  muted: 'border-violet-200 bg-violet-50 text-violet-700',
+  neutral: 'border-border bg-background text-foreground',
+  info: 'border-[var(--color-highlight)] bg-[var(--color-highlight)]/[0.1] text-[var(--color-primary)]',
+  success: 'border-[var(--color-primary)] bg-[var(--color-primary)]/[0.1] text-[var(--color-primary-foreground)]',
+  muted: 'border-border bg-background text-foreground',
 } as const
 
 export function DashboardPage() {
@@ -88,6 +88,7 @@ export function DashboardPage() {
         detail: 'Recorded product families',
         tone: 'neutral' as const,
         icon: Boxes,
+        cardBg: 'var(--brand-primary)',
       },
       {
         label: 'Active variants',
@@ -95,6 +96,7 @@ export function DashboardPage() {
         detail: 'Current active variants',
         tone: 'info' as const,
         icon: PackageCheck,
+        cardBg: 'var(--brand-accent)',
       },
       {
         label: 'On-hand crates',
@@ -172,19 +174,19 @@ export function DashboardPage() {
           <BrandingPanel key={activeBusiness.id} business={activeBusiness} />
 
           <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-            {metricCards.map(({ label, value, detail, tone, icon: Icon }) => (
+            {metricCards.map(({ label, value, detail, tone, icon: Icon, cardBg }) => (
               <div
                 key={label}
-                className={`rounded-2xl border p-4 shadow-sm ${metricStyles[tone]} dark:border-slate-700 dark:bg-slate-900`}
+                className={`rounded-2xl border p-4 shadow-sm ${metricStyles[tone]} ${cardBg ? `bg-[${cardBg}]` : ''} dark:border-slate-700 dark:bg-slate-900`}
               >
                 <div className="flex items-center justify-between">
                   <p className="text-sm font-medium">{label}</p>
-                  <span className="rounded-lg bg-white/70 p-2 dark:bg-slate-800/80">
+                  <span className="rounded-lg bg-[${cardFg}]/10 p-2 dark:bg-slate-800/80">
                     <Icon className="h-4 w-4" />
                   </span>
                 </div>
-                <p className="mt-5 text-3xl font-semibold tracking-tight text-slate-900 dark:text-white">{value}</p>
-                <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">{detail}</p>
+                <p className="mt-5 text-3xl font-semibold tracking-tight text-foreground">{value}</p>
+                <p className="mt-2 text-xs text-foreground dark:text-slate-400">{detail}</p>
               </div>
             ))}
           </section>

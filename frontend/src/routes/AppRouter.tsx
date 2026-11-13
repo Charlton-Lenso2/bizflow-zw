@@ -11,9 +11,14 @@ import { CustomerDetailPage } from '../features/customers/pages/CustomerDetailPa
 import { POSPage } from '../features/sales/pages/POSPage'
 import { SalesPage } from '../features/sales/pages/SalesPage'
 import { SaleDetailPage } from '../features/sales/pages/SaleDetailPage'
+import { AiAssistantPage } from '../features/ai/pages/AiAssistantPage'
+import { PackagingPage } from '../features/packaging/pages/PackagingPage'
+import { CreditPage } from '../features/credit/pages/CreditPage'
+import { ReportsPage } from '../features/reports/pages/ReportsPage'
+import { SettingsPage } from '../features/settings/pages/SettingsPage'
+import { AppLayout } from '../components/layout/AppLayout'
 import { useAuth } from '../features/auth/hooks/useAuth'
 import { LoadingState } from '../components/ui/LoadingState'
-import { AppLayout } from '../components/layout/AppLayout'
 import { ProtectedRoute } from './ProtectedRoute'
 
 function PublicRoute({ children }: { children: ReactNode }) {
@@ -123,6 +128,18 @@ export function AppRouter() {
             </AppLayout>
           }
         />
+        <Route
+          path="/ai"
+          element={
+            <AppLayout>
+              <AiAssistantPage />
+            </AppLayout>
+          }
+        />
+        <Route path="/packaging" element={<AppLayout><PackagingPage /></AppLayout>} />
+        <Route path="/credit" element={<AppLayout><CreditPage /></AppLayout>} />
+        <Route path="/reports" element={<AppLayout><ReportsPage /></AppLayout>} />
+        <Route path="/settings" element={<AppLayout><SettingsPage /></AppLayout>} />
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
       </Route>
 
