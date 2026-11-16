@@ -83,7 +83,10 @@ export async function fetchAllCustomersForBusiness(businessId: string): Promise<
 }
 
 
-export async function fetchCustomerById(businessId: string, customerId: string): Promise<CustomerDetailRow | null> {
+export async function fetchCustomerById(
+  businessId: string,
+  customerId: string
+): Promise<CustomerDetailRow | null> {
   ensureBusinessScope(businessId)
 
   const { data, error } = await supabase
@@ -97,57 +100,77 @@ export async function fetchCustomerById(businessId: string, customerId: string):
     if (error.code === 'PGRST116') {
       return null
     }
+
     throw error
   }
 
   const customer = data as unknown as CustomerDetailRow
 
-  const [{ data: paymentRows, error: paymentError }, { data: balanceRows, error: balanceError }, { data: txRows, error: txError }] =
-    await Promise.all([
-      supabase
-        .from('customer_ledger_entries')
-        .select('id, customer_id, business_id, amount, payment_method, reference, entry_type, created_at')
-        .eq('business_id', businessId)
-        .eq('customer_id', customerId)
-        .order('created_at', { ascending: false }),
-      supabase
-        .from('customer_packaging_accounts')
-        .select('id, packaging_type_id, packaging_type_name, packaging_category, balance_quantity, is_owed')
-        .eq('business_id', businessId)
-        .eq('customer_id', customerId),
-      supabase
-        .from('packaging_transactions')
-        .select('id, customer_id, business_id, packaging_type_id, packaging_type_name, packaging_category, quantity, transaction_type, created_at')
-        .eq('business_id', businessId)
-        .eq('customer_id', customerId)
-        .order('created_at', { ascending: false }),
-    ])
+  const [
+    { data: ledgerRows, error: ledgerError },
+    { data: salesRows, error: salesError },
+    { data: balanceRows, error: balanceError },
+    { data: txRows, error: txError },
+  ] = await Promise.all([
+    supabase
+      .from('customer_ledger_entries')
+      .select('id, customer_id, business_id, sale_id, amount, currency, payment_method, reference, entry_type, notes, created_at')
+      .eq('business_id', businessId)
+      .eq('customer_id', customerId)
+      .order('created_at', { ascending: false }),
+    supabase
+      .from('sales')
+      .select('id, sale_number, customer_id, status, currency, subtotal, discount_amount, total_amount, created_at')
+      .eq('business_id', businessId)
+      .eq('customer_id', customerId)
+      .order('created_at', { ascending: false }),
+    supabase
+      .from('customer_packaging_accounts')
+      .select('id, packaging_type_id, packaging_type_name, packaging_category, balance_quantity, is_owed')
+      .eq('business_id', businessId)
+      .eq('customer_id', customerId),
+    supabase
+      .from('packaging_transactions')
+      .select('id, customer_id, business_id, packaging_type_id, packaging_type_name, packaging_category, quantity, transaction_type, created_at')
+      .eq('business_id', businessId)
+      .eq('customer_id', customerId)
+      .order('created_at', { ascending: false }),
+  ])
 
-  if (paymentError) {
-    throw paymentError
+  if (ledgerError) {
+    throw ledgerError
   }
+
+  if (salesError) {
+    throw salesError
+  }
+
   if (balanceError) {
     throw balanceError
   }
+
   if (txError) {
     throw txError
   }
 
-  customer.payments = (paymentRows ?? []) as CustomerLedgerEntry[]
+  customer.payments = (ledgerRows ?? []) as CustomerLedgerEntry[]
+  customer.sales = (salesRows ?? []) as CustomerDetailRow['sales']
   customer.packaging_balances = (balanceRows ?? []) as CustomerPackagingBalanceRow[]
   customer.packaging_transactions = (txRows ?? []) as CustomerPackagingTransactionRow[]
 
   return customer
 }
 
-
-export async function fetchCustomersWithFinancialSummary(businessId: string, searchTerm: string): Promise<CustomerSearchResult[]> {
+export async function fetchCustomersWithFinancialSummary(
+  businessId: string,
+  searchTerm: string
+): Promise<CustomerSearchResult[]> {
   ensureBusinessScope(businessId)
 
   const term = searchTerm.trim()
   const query = supabase
     .from('customers')
-    .select('id, business_id, full_name, business_name, phone, address, is_active, created_at, updated_at, customer_id, customer_business_id')
+    .select('id, business_id, full_name, business_name, phone, address, is_active, created_at, updated_at')
     .eq('business_id', businessId)
     .order('full_name', { ascending: true })
 
@@ -161,46 +184,82 @@ export async function fetchCustomersWithFinancialSummary(businessId: string, sea
     throw error
   }
 
-  const customers = (data ?? []) as Array<CustomerRecord & { customer_id: string | null; customer_business_id: string | null }>
+  const customers = (data ?? []) as CustomerRecord[]
 
-  const results: CustomerSearchResult[] = []
-  for (const customer of customers) {
-    if (customer.customer_id === null || customer.customer_business_id === null) {
-      continue
+  const results: CustomerSearchResult[] = customers.map(customer => ({
+    ...customer,
+    current_outstanding_balance_usd: 0,
+    current_outstanding_balance_zwg: 0,
+    total_sales_usd: 0,
+    total_sales_zwg: 0,
+    total_payments_usd: 0,
+    total_payments_zwg: 0,
+  }))
+
+  if (customers.length === 0) {
+    return results
+  }
+
+  const customerIds = customers.map(customer => customer.id)
+  const customersById = new Map(
+    results.map(customer => [customer.id, customer])
+  )
+
+  const pageSize = 1000
+  let offset = 0
+
+  while (true) {
+    const { data: ledgerEntries, error: ledgerError } = await supabase
+      .from('customer_ledger_entries')
+      .select('id, customer_id, business_id, sale_id, amount, currency, payment_method, reference, entry_type, notes, created_at')
+      .eq('business_id', businessId)
+      .in('customer_id', customerIds)
+      .order('created_at', { ascending: false })
+      .range(offset, offset + pageSize - 1)
+
+    if (ledgerError) {
+      throw ledgerError
     }
 
-    const [{ data: paymentsData, error: paymentsError }] = await Promise.all([
-      supabase
-        .from('customer_ledger_entries')
-        .select('id, customer_id, business_id, amount, payment_method, reference, entry_type, created_at')
-        .eq('business_id', businessId)
-        .eq('customer_id', customer.customer_id)
-        .order('created_at', { ascending: false }),
-    ])
+    const entries = ledgerEntries ?? []
 
-    if (paymentsError) {
-      throw paymentsError
+    for (const entry of entries) {
+      const customer = customersById.get(entry.customer_id)
+
+      if (!customer) {
+        continue
+      }
+
+      const amount = toNumber(entry.amount)
+
+      if (entry.currency === 'USD') {
+        customer.current_outstanding_balance_usd += amount
+
+        if (entry.entry_type === 'sale_charge') {
+          customer.total_sales_usd += amount
+        } else if (entry.entry_type === 'payment') {
+          customer.total_payments_usd += Math.abs(amount)
+        }
+      } else if (entry.currency === 'ZWG') {
+        customer.current_outstanding_balance_zwg += amount
+
+        if (entry.entry_type === 'sale_charge') {
+          customer.total_sales_zwg += amount
+        } else if (entry.entry_type === 'payment') {
+          customer.total_payments_zwg += Math.abs(amount)
+        }
+      }
     }
 
-    const payments = paymentsData ?? []
+    if (entries.length < pageSize) {
+      break
+    }
 
-    // Compute outstanding balance per verified convention: SUM(ledger.amount)
-    const amounts = (payments ?? []).map(e => toNumber(e.amount))
-    const totalSales = amounts.filter(a => a > 0).reduce((sum, a) => sum + a, 0)
-    const totalPayments = amounts.filter(a => a < 0).reduce((sum, a) => sum + a, 0) * -1
-    const outstanding = amounts.reduce((sum, a) => sum + a, 0)
-
-    results.push({
-      ...customer,
-      current_outstanding_balance: outstanding,
-      total_sales: totalSales,
-      total_payments: totalPayments,
-    })
+    offset += entries.length
   }
 
   return results
 }
-
 
 export async function createCustomer(input: {
   businessId: string

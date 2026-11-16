@@ -6,7 +6,6 @@ import { Button } from '../../../components/ui/Button'
 import { useBusiness } from '../../business/hooks/useActiveBusiness'
 import {
   fetchSaleDetail,
-  formatCurrency,
   getSaleStatusLabel,
   makeCustomerPayment,
   refundPackagingDeposit,
@@ -14,6 +13,15 @@ import {
 import type { SaleDetailRow } from '../types/sales'
 
 const PAYMENT_OPTIONS = ['cash', 'bank_transfer', 'mobile_money']
+
+function formatMoney(value: number | null | undefined, currency: string | null | undefined): string {
+  const amount = Number(value ?? 0)
+  const code = String(currency ?? 'USD').trim().toUpperCase() === 'ZWG' ? 'ZWG' : 'USD'
+  return `${code} ${new Intl.NumberFormat('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(Number.isFinite(amount) ? amount : 0)}`
+}
 
 function readRpcBalance(result: Record<string, unknown> | null | undefined): number | null {
   if (!result) {
@@ -59,14 +67,21 @@ export function SaleDetailPage() {
     return businesses.find((membership) => membership.business_id === activeBusinessId)?.role ?? null
   }, [activeBusinessId, businesses])
 
-  const outstandingBalance = useMemo(() => {
-    if (!sale) {
-      return 0
-    }
+  const paymentEntries = useMemo(
+    () => (sale?.payments ?? []).filter((entry) => entry.entry_type === 'payment'),
+    [sale],
+  )
 
-    const paidTotal = (sale.payments ?? []).reduce((sum, entry) => sum + Number(entry.amount ?? 0), 0)
+  const outstandingBalance = useMemo(() => {
+    if (!sale) return 0
+
+    const paidTotal = paymentEntries.reduce(
+      (sum, entry) => sum + Math.abs(Number(entry.amount ?? 0)),
+      0,
+    )
+
     return Math.max(Number(sale.total_amount ?? 0) - paidTotal, 0)
-  }, [sale])
+  }, [sale, paymentEntries])
 
   const loadSale = async () => {
     if (!activeBusinessId || !saleId) {
@@ -155,14 +170,14 @@ export function SaleDetailPage() {
         await loadSale()
         setPaymentStatus({
           type: 'success',
-          text: `Payment recorded successfully. Remaining balance: ${formatCurrency(remainingAmount)}.`,
+          text: `Payment recorded successfully. Remaining balance: ${formatMoney(remainingAmount, sale.currency)}.`,
         })
         setPaymentForm({ amount: '', paymentMethod: 'cash', reference: '' })
       } catch (refreshError) {
         console.error('Failed to refresh sale after customer payment', refreshError)
         setPaymentStatus({
           type: 'success',
-          text: `Payment recorded successfully. Remaining balance: ${formatCurrency(remainingAmount)}. The displayed sale data could not refresh.`,
+          text: `Payment recorded successfully. Remaining balance: ${formatMoney(remainingAmount, sale.currency)}. The displayed sale data could not refresh.`,
         })
       }
     } catch (err) {
@@ -250,7 +265,7 @@ export function SaleDetailPage() {
           </div>
           <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-800/30">
             <p className="text-xs uppercase tracking-[0.16em] text-slate-500">Outstanding</p>
-            <p className="mt-2 font-medium text-slate-900 dark:text-white">{formatCurrency(outstandingBalance)}</p>
+            <p className="mt-2 font-medium text-slate-900 dark:text-white">{formatMoney(outstandingBalance, sale.currency)}</p>
           </div>
         </div>
       </div>
@@ -306,7 +321,7 @@ export function SaleDetailPage() {
           </div>
 
           <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
-            <p className="text-sm text-slate-600 dark:text-slate-300">Available balance: <span className="font-semibold text-slate-900 dark:text-white">{formatCurrency(outstandingBalance)}</span></p>
+            <p className="text-sm text-slate-600 dark:text-slate-300">Available balance: <span className="font-semibold text-slate-900 dark:text-white">{formatMoney(outstandingBalance, sale.currency)}</span></p>
             <Button type="button" variant="primary" onClick={handleRecordPayment} disabled={isSubmittingPayment} isLoading={isSubmittingPayment}>
               Record payment
             </Button>
@@ -319,7 +334,7 @@ export function SaleDetailPage() {
           <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Payment history</h2>
         </div>
 
-        {(sale.payments ?? []).length === 0 ? (
+        {paymentEntries.length === 0 ? (
           <p className="text-sm text-slate-500 dark:text-slate-400">No payments have been recorded for this sale.</p>
         ) : (
           <div className="overflow-x-auto">
@@ -333,10 +348,10 @@ export function SaleDetailPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
-                {(sale.payments ?? []).map((entry) => (
+                {paymentEntries.map((entry) => (
                   <tr key={entry.id}>
                     <td className="py-3 pr-4 text-slate-700 dark:text-slate-200">{entry.created_at ? new Date(entry.created_at).toLocaleString() : '—'}</td>
-                    <td className="py-3 pr-4 font-medium text-slate-900 dark:text-white">{formatCurrency(entry.amount)}</td>
+                    <td className="py-3 pr-4 font-medium text-slate-900 dark:text-white">{formatMoney(Math.abs(Number(entry.amount ?? 0)), sale.currency)}</td>
                     <td className="py-3 pr-4 text-slate-700 dark:text-slate-200">{entry.payment_method ?? '—'}</td>
                     <td className="py-3 pr-4 text-slate-700 dark:text-slate-200">{entry.reference ?? '—'}</td>
                   </tr>
@@ -376,7 +391,7 @@ export function SaleDetailPage() {
                       <p className="text-sm text-slate-500 dark:text-slate-400">Quantity: {deposit.quantity ?? 0} · Status: {status || 'Unknown'}</p>
                     </div>
                     <div className="text-right text-sm text-slate-700 dark:text-slate-200">
-                      <div>Amount: {formatCurrency(deposit.amount)}</div>
+                      <div>Amount: {formatMoney(deposit.amount, deposit.currency)}</div>
                       <div>{deposit.currency ?? 'USD'}</div>
                     </div>
                   </div>
@@ -427,9 +442,9 @@ export function SaleDetailPage() {
                 <tr key={item.id}>
                   <td className="py-3 pr-4 font-medium text-slate-900 dark:text-white">{item.product_name_snapshot ?? 'Product'}</td>
                   <td className="py-3 pr-4 text-slate-700 dark:text-slate-200">{item.quantity_crates ?? 0}</td>
-                  <td className="py-3 pr-4 text-slate-700 dark:text-slate-200">{formatCurrency(item.unit_price)}</td>
-                  <td className="py-3 pr-4 text-slate-700 dark:text-slate-200">{formatCurrency(item.discount_amount)}</td>
-                  <td className="py-3 pr-4 font-medium text-slate-900 dark:text-white">{formatCurrency(item.line_total)}</td>
+                  <td className="py-3 pr-4 text-slate-700 dark:text-slate-200">{formatMoney(item.unit_price, sale.currency)}</td>
+                  <td className="py-3 pr-4 text-slate-700 dark:text-slate-200">{formatMoney(item.discount_amount, sale.currency)}</td>
+                  <td className="py-3 pr-4 font-medium text-slate-900 dark:text-white">{formatMoney(item.line_total, sale.currency)}</td>
                 </tr>
               ))}
             </tbody>
@@ -463,7 +478,7 @@ export function SaleDetailPage() {
           {(sale.sale_items ?? []).map((item) => (
             <div key={item.id} className="flex items-center justify-between gap-3">
               <span>{item.product_name_snapshot ?? 'Product'} × {item.quantity_crates ?? 0}</span>
-              <span>{formatCurrency(item.line_total)}</span>
+              <span>{formatMoney(item.line_total, sale.currency)}</span>
             </div>
           ))}
         </div>
@@ -471,19 +486,19 @@ export function SaleDetailPage() {
         <div className="mt-6 space-y-2 border-t border-slate-200 pt-4 text-sm dark:border-slate-700">
           <div className="flex items-center justify-between text-slate-700 dark:text-slate-200">
             <span>Subtotal</span>
-            <span>{formatCurrency(sale.subtotal)}</span>
+            <span>{formatMoney(sale.subtotal, sale.currency)}</span>
           </div>
           <div className="flex items-center justify-between text-slate-700 dark:text-slate-200">
             <span>Discount</span>
-            <span>{formatCurrency(sale.discount_amount)}</span>
+            <span>{formatMoney(sale.discount_amount, sale.currency)}</span>
           </div>
           <div className="flex items-center justify-between text-base font-semibold text-slate-900 dark:text-white">
             <span>Total</span>
-            <span>{formatCurrency(sale.total_amount)}</span>
+            <span>{formatMoney(sale.total_amount, sale.currency)}</span>
           </div>
           <div className="flex items-center justify-between text-slate-700 dark:text-slate-200">
             <span>Outstanding balance</span>
-            <span>{formatCurrency(outstandingBalance)}</span>
+            <span>{formatMoney(outstandingBalance, sale.currency)}</span>
           </div>
         </div>
       </div>

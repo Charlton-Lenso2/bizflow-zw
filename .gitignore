@@ -10,3 +10,7 @@ coverage/
 .vscode/
 .idea/
 supabase/.temp/
+
+# Local recovery and debugging backups
+*.backup*
+*.openai-backup-*

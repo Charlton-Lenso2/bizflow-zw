@@ -1,72 +1,111 @@
 import { supabase } from "../../../lib/supabase";
-import type { AiQueryResponse } from "../types/ai-types";
+import type {
+  AiQueryRequest,
+  AiQueryResponse,
+} from "../types/ai-types";
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
 
 export async function askAiQuestion(
   question: string,
-  context?: string,
-  businessId?: string
+  context: AiQueryRequest["context"],
+  businessId: string,
+  conversationHistory: NonNullable<AiQueryRequest["conversationHistory"]> = [],
 ): Promise<AiQueryResponse> {
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!session) {
-    return {
-      answer: "No active session. Please sign in to use the AI assistant.",
-      data: null,
-      sources: [],
-    };
+  const trimmedQuestion = question.trim();
+
+  if (!trimmedQuestion) {
+    throw new Error("Please enter a question.");
   }
 
   if (!businessId) {
-    return {
-      answer:
-        "No business selected. Please select a business before using the AI assistant.",
-      data: null,
-      sources: [],
-    };
+    throw new Error(
+      "No business selected. Please select a business before using the AI assistant.",
+    );
+  }
+
+  const {
+    data: { session },
+    error: sessionError,
+  } = await supabase.auth.getSession();
+
+  if (sessionError) {
+    throw new Error("Could not verify your session. Please sign in again.");
+  }
+
+  if (!session) {
+    throw new Error("No active session. Please sign in to use the AI assistant.");
   }
 
   const { data, error } = await supabase.functions.invoke("ai-assistant", {
-    body: { question, context, businessId },
+    body: {
+      question: trimmedQuestion,
+      context: context ?? "general",
+      businessId,
+      conversationHistory,
+    },
   });
 
   if (error) {
-    if (error.status === 403) {
-      return {
-        answer:
-          "You are not authorized to use the AI assistant. Please contact your administrator.",
-        data: null,
-        sources: [],
-      };
+    let message = error.message || "The AI service request failed.";
+
+    if (
+      "context" in error &&
+      error.context instanceof Response
+    ) {
+      const response = error.context;
+
+      try {
+        const errorBody: unknown = await response.clone().json();
+
+        if (
+          isRecord(errorBody) &&
+          typeof errorBody.error === "string"
+        ) {
+          message = errorBody.error;
+        }
+      } catch {
+        // Keep the original Supabase error message.
+      }
+
+      if (response.status === 401) {
+        message = "Your session has expired. Please sign in again.";
+      } else if (response.status === 403) {
+        message =
+          "You are not authorized to use the AI assistant for this business.";
+      } else if (response.status === 404) {
+        message =
+          "The AI service has not been deployed or configured yet.";
+      }
     }
-    if (error.status === 404) {
-      return {
-        answer:
-          "AI service not configured. Please contact your administrator to set up the OpenAI API key.",
-        data: null,
-        sources: [],
-      };
-    }
-    return {
-      answer: `AI service error: ${error.message || error.detail || "Unknown error"}`,
-      data: null,
-      sources: [],
-    };
+
+    throw new Error(message);
   }
 
-  if (!data) {
-    return {
-      answer:
-        "AI service not configured. The OpenAI API key is missing. Please contact your administrator.",
-      data: null,
-      sources: [],
-    };
+  if (!isRecord(data)) {
+    throw new Error("The AI service returned an invalid response.");
   }
 
-  const responseText = data.response || data.answer || JSON.stringify(data);
+  const answer =
+    typeof data.answer === "string"
+      ? data.answer
+      : typeof data.response === "string"
+        ? data.response
+        : "";
+
+  if (!answer.trim()) {
+    throw new Error("The AI service returned an empty answer. Please try again.");
+  }
 
   return {
-    answer:
-      typeof responseText === "string" ? responseText : "No response generated.",
-    data: data.data ?? data,
-    sources: data.sources ?? [],
+    answer,
+    data: data.data ?? null,
+    sources: Array.isArray(data.sources)
+      ? data.sources.filter(
+          (source): source is string => typeof source === "string",
+        )
+      : [],
   };
 }

@@ -4,6 +4,7 @@ import { LoginPage } from '../features/auth/pages/LoginPage'
 import { SignupPage } from '../features/auth/pages/SignupPage'
 import { BusinessOnboardingPage } from '../features/business/pages/BusinessOnboardingPage'
 import { DashboardPage } from '../features/dashboard/pages/DashboardPage'
+import { CalculatorPage } from '../features/calculator/pages/CalculatorPage'
 import { CataloguePage } from '../features/catalogue/pages/CataloguePage'
 import { InventoryPage } from '../features/inventory/pages/InventoryPage'
 import { CustomerDirectoryPage } from '../features/customers/pages/CustomerDirectoryPage'
@@ -89,6 +90,14 @@ export function AppRouter() {
           }
         />
         <Route
+          path="/calculator"
+          element={
+            <AppLayout>
+              <CalculatorPage />
+            </AppLayout>
+          }
+        />
+        <Route
           path="/customers"
           element={
             <AppLayout>
@@ -122,11 +131,7 @@ export function AppRouter() {
         />
         <Route
           path="/onboarding"
-          element={
-            <AppLayout>
-              <BusinessOnboardingPage />
-            </AppLayout>
-          }
+          element={<BusinessOnboardingPage />}
         />
         <Route
           path="/ai"

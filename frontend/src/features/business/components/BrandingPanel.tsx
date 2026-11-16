@@ -1,242 +1,432 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
-import { ImageUp, Sparkles } from 'lucide-react'
-import { Button } from '../../../components/ui/Button'
-import { updateBusinessLogoUrl, uploadBusinessLogoForBusiness, validateBusinessLogoFile } from '../services/businessService'
-import type { BusinessRecord } from '../types/business'
+import { useEffect, useRef, useState } from "react";
+import { ImageUp, RotateCcw, Save, Sparkles } from "lucide-react";
+import { Button } from "../../../components/ui/Button";
+import type { BusinessRecord } from "../types/business";
+import {
+  fetchBusinessBranding,
+  saveBusinessBranding,
+  updateBusinessLogoUrl,
+  uploadBusinessLogoForBusiness,
+  validateBusinessLogoFile,
+} from "../services/businessService";
 import {
   applyBrandPalette,
-  buildBrandPalette,
-  createPreviewObjectUrl,
   extractPaletteFromImage,
   FALLBACK_BRAND_PALETTE,
-  getBusinessBranding,
-  revokeObjectUrl,
-  saveBrandingForBusiness,
   type BrandPalette,
-} from '../utils/brandPalette'
+} from "../utils/brandPalette";
 
-export function BrandingPanel({ business }: { business: BusinessRecord }) {
-  const fileInputRef = useRef<HTMLInputElement | null>(null)
-  const initialBranding = useMemo(
-    () => getBusinessBranding(business.id, business.logo_url ?? null),
-    [business.id, business.logo_url],
-  )
+type BrandingPanelProps = {
+  business: BusinessRecord;
+};
 
-  const [logoUrl, setLogoUrl] = useState<string | null>(initialBranding.logoUrl)
-  const [palette, setPalette] = useState<BrandPalette>(initialBranding.palette)
-  const [primaryColor, setPrimaryColor] = useState(initialBranding.palette.primary)
-  const [accentColor, setAccentColor] = useState(initialBranding.palette.accent)
-  const [statusMessage, setStatusMessage] = useState('')
-  const [isSaving, setIsSaving] = useState(false)
+function getDetailedError(error: unknown): string {
+  if (error && typeof error === "object") {
+    const value = error as Record<string, unknown>;
+    const parts = [
+      value.message,
+      value.details,
+      value.hint,
+      value.code,
+    ].filter(
+      (item): item is string =>
+        typeof item === "string" && item.trim().length > 0,
+    );
+
+    if (parts.length > 0) {
+      return parts.join(" — ");
+    }
+  }
+
+  if (error instanceof Error) {
+    return error.message;
+  }
+
+  return "An unexpected error occurred.";
+}
+
+export function BrandingPanel({ business }: BrandingPanelProps) {
+  const [palette, setPalette] = useState<BrandPalette>(
+    FALLBACK_BRAND_PALETTE,
+  );
+  const [logoUrl, setLogoUrl] = useState(business.logo_url ?? "");
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
+  const previewUrlRef = useRef("");
 
   useEffect(() => {
-    applyBrandPalette(palette)
-  }, [palette])
+    let cancelled = false;
+
+    async function loadBranding() {
+      setIsLoading(true);
+      setError("");
+
+      try {
+        const record = await fetchBusinessBranding(business.id);
+
+        if (cancelled) return;
+
+        if (record) {
+          const savedPalette =
+            record.palette &&
+            typeof record.palette.primary === "string" &&
+            typeof record.palette.accent === "string"
+              ? record.palette
+              : {
+                  ...FALLBACK_BRAND_PALETTE,
+                  primary: record.primary_color,
+                  accent: record.accent_color,
+                };
+
+          setPalette(savedPalette);
+          applyBrandPalette(savedPalette);
+        } else {
+          setPalette(FALLBACK_BRAND_PALETTE);
+          applyBrandPalette(FALLBACK_BRAND_PALETTE);
+        }
+
+        setLogoUrl(business.logo_url ?? "");
+      } catch (loadError) {
+        if (!cancelled) {
+          setError(
+            loadError instanceof Error
+              ? loadError.message
+              : "Could not load the saved business branding.",
+          );
+        }
+      } finally {
+        if (!cancelled) setIsLoading(false);
+      }
+    }
+
+    void loadBranding();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [business.id, business.logo_url]);
+
+  useEffect(() => {
+    applyBrandPalette(palette);
+  }, [palette]);
 
   useEffect(() => {
     return () => {
-      revokeObjectUrl(logoUrl)
-    }
-  }, [logoUrl])
+      if (previewUrlRef.current) {
+        URL.revokeObjectURL(previewUrlRef.current);
+      }
+    };
+  }, []);
 
-  const updatePalette = (nextPrimary: string, nextAccent: string) => {
-    const nextPalette = buildBrandPalette(nextPrimary, nextAccent)
-    setPalette(nextPalette)
-    setPrimaryColor(nextPrimary)
-    setAccentColor(nextAccent)
-  }
+  const handleLogoChange = async (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
 
-  const handleFileSelection = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFile = event.target.files?.[0]
+    if (!file) return;
 
-    if (!selectedFile) {
-      return
-    }
+    const validationMessage = validateBusinessLogoFile(file);
 
-    const validationMessage = validateBusinessLogoFile(selectedFile)
     if (validationMessage) {
-      setStatusMessage(validationMessage)
-      event.target.value = ''
-      return
+      setError(validationMessage);
+      setMessage("");
+      return;
     }
 
-    let previewUrl: string | null = null
+    setError("");
+    setMessage("Reading your logo and extracting its colours...");
 
     try {
-      previewUrl = createPreviewObjectUrl(selectedFile)
-      const extractedPalette = await extractPaletteFromImage(selectedFile)
+      const extractedPalette = await extractPaletteFromImage(file);
+      const nextPreviewUrl = URL.createObjectURL(file);
 
-      setLogoUrl(previewUrl)
-      updatePalette(extractedPalette.primary, extractedPalette.accent)
-      saveBrandingForBusiness(business.id, { logoUrl: previewUrl, palette: extractedPalette })
+      if (previewUrlRef.current) {
+        URL.revokeObjectURL(previewUrlRef.current);
+      }
 
-      try {
-        const persistedLogoUrl = await uploadBusinessLogoForBusiness(business.id, selectedFile)
-        setLogoUrl(persistedLogoUrl)
-        saveBrandingForBusiness(business.id, { logoUrl: persistedLogoUrl, palette: extractedPalette })
-        await updateBusinessLogoUrl(business.id, persistedLogoUrl)
-        revokeObjectUrl(previewUrl)
-        setStatusMessage('Logo uploaded to storage and the business record was updated.')
-      } catch (storageError) {
-        console.warn('Business logo storage is not yet configured.', storageError)
-        setStatusMessage(
-          'Temporary logo preview ready. Create a public Supabase Storage bucket for business logos and retry to save it to the business record.',
-        )
-      }
-    } catch (error) {
-      console.error('Failed to process uploaded logo', error)
-      if (previewUrl) {
-        revokeObjectUrl(previewUrl)
-      }
-      setStatusMessage('The file could not be processed. Please try another image.')
-    } finally {
-      event.target.value = ''
+      previewUrlRef.current = nextPreviewUrl;
+      setPreviewUrl(nextPreviewUrl);
+      setSelectedFile(file);
+      setPalette(extractedPalette);
+      setMessage("Logo analysed. Save changes to apply your new branding.");
+    } catch (extractError) {
+      setError(
+        extractError instanceof Error
+          ? extractError.message
+          : "Could not extract colours from this image.",
+      );
+      setMessage("");
     }
-  }
+  };
 
-  const handleApplyBranding = async () => {
-    setIsSaving(true)
-    setStatusMessage('')
+  const handleSave = async () => {
+    setIsSaving(true);
+    setError("");
+    setMessage("");
+
+    let stage = "saving your brand colours";
 
     try {
-      const nextPalette = buildBrandPalette(primaryColor, accentColor)
-      const nextBranding = { logoUrl, palette: nextPalette }
+      await saveBusinessBranding(business.id, palette);
 
-      setPalette(nextPalette)
-      saveBrandingForBusiness(business.id, nextBranding)
+      if (selectedFile) {
+        stage = "uploading your logo";
 
-      if (logoUrl && !logoUrl.startsWith('blob:') && !logoUrl.startsWith('data:')) {
-        await updateBusinessLogoUrl(business.id, nextBranding.logoUrl)
-        setStatusMessage('Brand colors and logo were saved for this business.')
-        return
+        const publicUrl = await uploadBusinessLogoForBusiness(
+          business.id,
+          selectedFile,
+        );
+
+        stage = "saving your logo URL";
+
+        await updateBusinessLogoUrl(business.id, publicUrl);
+
+        setLogoUrl(publicUrl);
+        setSelectedFile(null);
+        setPreviewUrl("");
+
+        if (previewUrlRef.current) {
+          URL.revokeObjectURL(previewUrlRef.current);
+          previewUrlRef.current = "";
+        }
       }
 
-      setStatusMessage(
-        'The palette was saved locally for this business, but the logo is only a temporary preview because no verified Supabase Storage bucket is configured.',
-      )
-    } catch (error) {
-      console.error('Unable to save branding', error)
-      setStatusMessage('The palette was stored locally, but the business record could not be updated.')
-    } finally {
-      setIsSaving(false)
-    }
-  }
+      applyBrandPalette(palette);
+      setMessage("Business branding saved successfully.");
+    } catch (saveError) {
+      console.error("Business branding save failed:", {
+        stage,
+        error: saveError,
+      });
 
-  const handleReset = () => {
-    const fallback = FALLBACK_BRAND_PALETTE
-    const fallbackLogo = business.logo_url ?? null
-    setLogoUrl(fallbackLogo)
-    setPalette(fallback)
-    setPrimaryColor(fallback.primary)
-    setAccentColor(fallback.accent)
-    saveBrandingForBusiness(business.id, { logoUrl: fallbackLogo, palette: fallback })
-    applyBrandPalette(fallback)
-    setStatusMessage('Branding reset to a safe fallback palette.')
-  }
+      setError(
+        `Failed while ${stage}: ${getDetailedError(saveError)}`,
+      );
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleReset = async () => {
+    setIsSaving(true);
+    setError("");
+    setMessage("");
+
+    try {
+      await saveBusinessBranding(
+        business.id,
+        FALLBACK_BRAND_PALETTE,
+      );
+
+      setPalette(FALLBACK_BRAND_PALETTE);
+      applyBrandPalette(FALLBACK_BRAND_PALETTE);
+      setSelectedFile(null);
+      setPreviewUrl("");
+
+      if (previewUrlRef.current) {
+        URL.revokeObjectURL(previewUrlRef.current);
+        previewUrlRef.current = "";
+      }
+
+      setMessage("Default branding restored and saved.");
+    } catch (resetError) {
+      setError(
+        resetError instanceof Error
+          ? resetError.message
+          : "Could not restore the default branding.",
+      );
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const displayedLogo = previewUrl || logoUrl;
 
   return (
-    <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-        <div>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">
-            Brand identity
-          </p>
-          <h2 className="mt-2 text-lg font-semibold text-slate-900 dark:text-white">Business branding</h2>
-        </div>
+    <section className="space-y-6">
+      <div>
+        <p className="text-sm font-medium text-blue-600 dark:text-blue-400">
+          Business appearance
+        </p>
+        <h2 className="mt-1 text-xl font-semibold text-slate-900 dark:text-white">
+          Logo and brand colours
+        </h2>
+        <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600 dark:text-slate-400">
+          Add your business logo and choose the colours used throughout your
+          workspace. You can automatically extract a colour palette from your
+          logo.
+        </p>
+      </div>
 
-        <button
-          type="button"
-          onClick={() => fileInputRef.current?.click()}
-          className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
+      {error ? (
+        <div
+          role="alert"
+          className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900/60 dark:bg-red-950/30 dark:text-red-300"
         >
-          <ImageUp className="h-4 w-4" />
-          Upload logo
-        </button>
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/*"
-          onChange={handleFileSelection}
-          className="hidden"
-          aria-label="Upload a business logo"
-        />
-      </div>
-
-      <div className="mt-5 grid gap-5 lg:grid-cols-[180px_1fr]">
-        <div className="flex items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-800/80">
-          {logoUrl ? (
-            <img src={logoUrl} alt={`${business.name} logo`} className="max-h-28 max-w-full rounded-2xl object-contain" />
-          ) : (
-            <div className="flex h-24 w-24 items-center justify-center rounded-2xl bg-slate-200 text-lg font-bold text-slate-700 dark:bg-slate-700 dark:text-slate-100">
-              {business.name.slice(0, 2).toUpperCase() || 'BZ'}
-            </div>
-          )}
+          {error}
         </div>
+      ) : null}
 
-        <div className="space-y-4">
-          <div className="grid gap-4 sm:grid-cols-2">
-            <label className="flex flex-col gap-2 text-sm font-medium text-slate-700 dark:text-slate-200">
-              Primary color
-              <div className="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 dark:border-slate-700 dark:bg-slate-800">
-                <input
-                  type="color"
-                  value={primaryColor}
-                  onChange={(event) => updatePalette(event.target.value, accentColor)}
-                  className="h-10 w-12 cursor-pointer rounded-md border-0 bg-transparent p-0"
-                  aria-label="Select primary brand color"
-                />
-                <span className="text-xs text-slate-500 dark:text-slate-400">{primaryColor.toUpperCase()}</span>
+      {message ? (
+        <div
+          role="status"
+          className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700 dark:border-emerald-900/60 dark:bg-emerald-950/30 dark:text-emerald-300"
+        >
+          {message}
+        </div>
+      ) : null}
+
+      {isLoading ? (
+        <div className="rounded-2xl border border-slate-200 bg-white p-6 text-sm text-slate-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-400">
+          Loading saved branding...
+        </div>
+      ) : (
+        <>
+          <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)]">
+            <div className="rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900">
+              <h3 className="font-semibold text-slate-900 dark:text-white">
+                Business logo
+              </h3>
+
+              <div className="mt-4 flex min-h-40 items-center justify-center rounded-xl border border-dashed border-slate-300 bg-slate-50 p-5 dark:border-slate-600 dark:bg-slate-800/60">
+                {displayedLogo ? (
+                  <img
+                    src={displayedLogo}
+                    alt={`${business.name} logo preview`}
+                    className="max-h-32 max-w-full object-contain"
+                  />
+                ) : (
+                  <div className="text-center">
+                    <ImageUp className="mx-auto h-9 w-9 text-slate-400" />
+                    <p className="mt-2 text-sm font-medium text-slate-600 dark:text-slate-300">
+                      No logo uploaded
+                    </p>
+                    <p className="mt-1 text-xs text-slate-500">
+                      PNG, JPG or WebP
+                    </p>
+                  </div>
+                )}
               </div>
-            </label>
 
-            <label className="flex flex-col gap-2 text-sm font-medium text-slate-700 dark:text-slate-200">
-              Accent color
-              <div className="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 dark:border-slate-700 dark:bg-slate-800">
+              <label className="mt-4 flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50 dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-800">
+                <ImageUp className="h-4 w-4" />
+                Choose logo
                 <input
-                  type="color"
-                  value={accentColor}
-                  onChange={(event) => updatePalette(primaryColor, event.target.value)}
-                  className="h-10 w-12 cursor-pointer rounded-md border-0 bg-transparent p-0"
-                  aria-label="Select accent brand color"
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp"
+                  className="sr-only"
+                  onChange={handleLogoChange}
                 />
-                <span className="text-xs text-slate-500 dark:text-slate-400">{accentColor.toUpperCase()}</span>
-              </div>
-            </label>
-          </div>
+              </label>
 
-          <div>
-            <p className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">
-              Palette preview
-            </p>
-            <div className="flex items-center gap-2">
-              {[palette.primary, palette.accent, palette.highlight, palette.surface].map((swatch) => (
-                <span
-                  key={swatch}
-                  className="h-10 flex-1 rounded-xl border border-slate-200 shadow-sm dark:border-slate-700"
-                  style={{ backgroundColor: swatch }}
-                  aria-label={`Brand swatch ${swatch}`}
-                />
-              ))}
+              <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
+                Maximum file size: 2 MB. The new logo is uploaded when you save.
+              </p>
+            </div>
+
+            <div className="rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900">
+              <div className="flex items-start gap-3">
+                <div className="rounded-xl bg-blue-50 p-2.5 text-blue-600 dark:bg-blue-950/50 dark:text-blue-400">
+                  <Sparkles className="h-5 w-5" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-slate-900 dark:text-white">
+                    Brand colour palette
+                  </h3>
+                  <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                    Extracted from your logo or adjusted manually.
+                  </p>
+                </div>
+              </div>
+
+              <div className="mt-6 grid gap-5 sm:grid-cols-2">
+                <label className="flex items-center gap-3">
+                  <input
+                    type="color"
+                    value={palette.primary}
+                    onChange={(event) =>
+                      setPalette((current) => ({
+                        ...current,
+                        primary: event.target.value,
+                      }))
+                    }
+                    className="h-11 w-14 cursor-pointer rounded-lg border-0 bg-transparent p-0"
+                  />
+                  <span>
+                    <span className="block text-sm font-medium text-slate-800 dark:text-slate-200">
+                      Primary colour
+                    </span>
+                    <span className="text-xs uppercase text-slate-500">
+                      {palette.primary}
+                    </span>
+                  </span>
+                </label>
+
+                <label className="flex items-center gap-3">
+                  <input
+                    type="color"
+                    value={palette.accent}
+                    onChange={(event) =>
+                      setPalette((current) => ({
+                        ...current,
+                        accent: event.target.value,
+                      }))
+                    }
+                    className="h-11 w-14 cursor-pointer rounded-lg border-0 bg-transparent p-0"
+                  />
+                  <span>
+                    <span className="block text-sm font-medium text-slate-800 dark:text-slate-200">
+                      Accent colour
+                    </span>
+                    <span className="text-xs uppercase text-slate-500">
+                      {palette.accent}
+                    </span>
+                  </span>
+                </label>
+              </div>
+
+              <div className="mt-6">
+                <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                  Palette preview
+                </p>
+                <div className="flex h-12 overflow-hidden rounded-xl">
+                  <div className="flex-1" style={{ backgroundColor: palette.primary }} />
+                  <div className="flex-1" style={{ backgroundColor: palette.accent }} />
+                  <div className="flex-1" style={{ backgroundColor: palette.highlight }} />
+                  <div className="flex-1" style={{ backgroundColor: palette.surface }} />
+                </div>
+              </div>
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-3">
-            <Button type="button" onClick={handleApplyBranding} isLoading={isSaving}>
-              Apply palette
+          <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={handleReset}
+              isLoading={isSaving}
+              className="gap-2"
+            >
+              <RotateCcw className="h-4 w-4" />
+              Restore defaults
             </Button>
-            <Button type="button" variant="secondary" onClick={handleReset}>
-              Reset fallback
+            <Button
+              type="button"
+              onClick={handleSave}
+              isLoading={isSaving}
+              className="gap-2"
+            >
+              <Save className="h-4 w-4" />
+              Save branding
             </Button>
           </div>
-
-          {statusMessage ? (
-            <p className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
-              <Sparkles className="h-4 w-4 text-slate-500" />
-              {statusMessage}
-            </p>
-          ) : null}
-        </div>
-      </div>
+        </>
+      )}
     </section>
-  )
+  );
 }

@@ -25,11 +25,13 @@ export type CustomerLedgerEntry = {
   id: string
   customer_id?: string | null
   business_id?: string | null
+  sale_id?: string | null
   amount?: number | null
   currency?: 'USD' | 'ZWG' | null
   payment_method?: string | null
   reference?: string | null
   entry_type?: 'sale_charge' | 'payment' | 'adjustment' | null
+  notes?: string | null
   created_at?: string | null
 }
 

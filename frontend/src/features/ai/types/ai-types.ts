@@ -6,6 +6,14 @@ export interface AiMessage {
   data?: unknown;
 }
 
+export interface AiConversation {
+  id: string;
+  title: string;
+  createdAt: string;
+  updatedAt: string;
+  messages: AiMessage[];
+}
+
 export interface AiQueryRequest {
   question: string;
   context?:
@@ -15,7 +23,10 @@ export interface AiQueryRequest {
     | "packaging"
     | "general";
   businessId?: string;
-  conversationHistory?: unknown[];
+  conversationHistory?: Array<{
+    role: "user" | "assistant";
+    content: string;
+  }>;
 }
 
 export interface AiQueryResponse {

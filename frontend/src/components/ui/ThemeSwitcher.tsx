@@ -1,33 +1,28 @@
-import { Moon, Sun } from 'lucide-react'
-import { useTheme } from '../../features/theme/context/ThemeContext'
+import { Moon, Sun } from "lucide-react";
+import { useTheme } from "../../features/theme/context/ThemeContext";
 
 export function ThemeSwitcher() {
-  const { mode, resolvedTheme, setMode } = useTheme()
+  const { resolvedTheme, setMode } = useTheme();
+
+  const isDark = resolvedTheme === "dark";
+
+  function toggleTheme() {
+    setMode(isDark ? "light" : "dark");
+  }
 
   return (
-    <div className="inline-flex rounded-xl border border-slate-200 bg-slate-50 p-1 dark:border-slate-700 dark:bg-slate-800">
-      {(['light', 'dark', 'system'] as const).map((option) => {
-        const isActive = mode === option
-        const isSystem = option === 'system'
-
-        return (
-          <button
-            key={option}
-            type="button"
-            onClick={() => setMode(option)}
-            className={`inline-flex items-center gap-2 rounded-lg px-3 py-1.5 text-xs font-medium transition ${
-              isActive
-                ? 'bg-white text-slate-900 shadow-sm dark:bg-slate-700 dark:text-white'
-                : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'
-            }`}
-            aria-label={`Set theme to ${option}`}
-          >
-            {option === 'light' ? <Sun className="h-3.5 w-3.5" /> : <Moon className="h-3.5 w-3.5" />}
-            <span>{isSystem ? 'System' : option}</span>
-          </button>
-        )
-      })}
-      <div className="sr-only">Current theme: {resolvedTheme}</div>
-    </div>
-  )
+    <button
+      type="button"
+      onClick={toggleTheme}
+      aria-label={`Switch to ${isDark ? "light" : "dark"} mode`}
+      title={`Switch to ${isDark ? "light" : "dark"} mode`}
+      className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-[var(--app-border)] bg-[var(--app-card)] text-[var(--app-muted)] shadow-sm transition-all duration-200 hover:border-[var(--brand-primary)] hover:bg-[var(--app-muted-bg)] hover:text-[var(--brand-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-primary)]"
+    >
+      {isDark ? (
+        <Sun size={18} strokeWidth={1.8} />
+      ) : (
+        <Moon size={18} strokeWidth={1.8} />
+      )}
+    </button>
+  );
 }

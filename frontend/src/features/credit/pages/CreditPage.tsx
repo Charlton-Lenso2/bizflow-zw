@@ -12,22 +12,37 @@ export function CreditPage() {
   const [error, setError] = useState<string | null>(null)
   const [search, setSearch] = useState('')
 
+  const visibleCustomers = activeBusiness?.id ? customers : []
+
   useEffect(() => {
     if (!activeBusiness?.id) {
-      setCustomers([])
       return
     }
+
+    let cancelled = false
+
     const loadCustomers = async () => {
       setError(null)
+
       try {
         const next = await fetchCustomersWithFinancialSummary(activeBusiness.id, search)
-        setCustomers(next)
+
+        if (!cancelled) {
+          setCustomers(next)
+        }
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Customers could not be loaded.')
-        setCustomers([])
+        if (!cancelled) {
+          setError(err instanceof Error ? err.message : 'Customers could not be loaded.')
+          setCustomers([])
+        }
       }
     }
+
     void loadCustomers()
+
+    return () => {
+      cancelled = true
+    }
   }, [activeBusiness?.id, search])
 
   return (
@@ -65,7 +80,7 @@ export function CreditPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
-              {customers.map((customer) => (
+              {visibleCustomers.map((customer) => (
                 <tr key={customer.id}>
                   <td className="py-3 pr-4 font-medium text-slate-900 dark:text-white">
                     {customer.full_name || customer.business_name || '—'}
