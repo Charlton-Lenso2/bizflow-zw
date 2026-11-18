@@ -17,6 +17,7 @@
 :root {
   color-scheme: light;
 
+  /* Brand palette — BizFlow ZW. Kept consistent across themes and custom branding. */
   --brand-primary: #1d4ed8;
   --brand-primary-contrast: #ffffff;
   --brand-accent: #f59e0b;
@@ -25,20 +26,36 @@
   --brand-surface: #f8fafc;
   --brand-surface-dark: #0f172a;
 
+  /* Semantic surface layering */
   --app-background: #f4f7fb;
-  --app-foreground: #172033;
+  --app-surface: #ffffff;
+  --app-surface-elevated: #f8fafc;
+  --app-foreground: #111827;
+  --app-foreground-muted: #475569;
+  --app-foreground-subtle: #64748b;
+
+  /* Borders */
   --app-border: #e2e8f0;
   --app-border-strong: #cbd5e1;
-  --app-card: #ffffff;
-  --app-muted: #64748b;
-  --app-input: #ffffff;
+  --app-border-focus: var(--brand-primary);
 
-  --color-primary-foreground: #ffffff;
-  --color-accent-foreground: #0f172a;
-  --color-surface: #f8fafc;
-  --color-surface-dark: #0f172a;
-  --color-border: #e2e8f0;
-  --color-border-dark: #cbd5e1;
+  /* Cards and inputs */
+  --app-card: #ffffff;
+  --app-input: #ffffff;
+  --app-muted: #64748b;
+
+  /* Shadows */
+  --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.06), 0 1px 2px -1px rgb(0 0 0 / 0.04);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.06), 0 2px 4px -2px rgb(0 0 0 / 0.04);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.07), 0 4px 6px -4px rgb(0 0 0 / 0.05);
+
+  /* Border radius */
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-full: 9999px;
 
   --font-sans: Inter, "Segoe UI", system-ui, sans-serif;
   --font-heading: Inter, "Segoe UI", system-ui, sans-serif;
@@ -70,12 +87,30 @@
   color-scheme: dark;
 
   --app-background: #0b1220;
+  --app-surface: #111c2e;
+  --app-surface-elevated: #17253d;
   --app-foreground: #e5eaf3;
+  --app-foreground-muted: #cbd5e1;
+  --app-foreground-subtle: #94a3b8;
+
   --app-border: #263449;
   --app-border-strong: #334155;
+  --app-border-focus: var(--brand-primary);
+
   --app-card: #111c2e;
-  --app-muted: #94a3b8;
   --app-input: #172438;
+  --app-muted: #94a3b8;
+
+  --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.3);
+  --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.35), 0 1px 2px -1px rgb(0 0 0 / 0.2);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.4), 0 2px 4px -2px rgb(0 0 0 / 0.3);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.5), 0 4px 6px -4px rgb(0 0 0 / 0.35);
+
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-full: 9999px;
 
   --color-surface: #0b1220;
   --color-surface-dark: #111c2e;

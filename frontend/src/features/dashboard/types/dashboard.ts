@@ -23,6 +23,8 @@ export type DashboardSummary = {
   activeVariantCount: number;
   stockOnHand: number | null;
   completedSalesCount: number;
+  lowStockCount: number;
+  outOfStockCount: number;
   recentActivity: DashboardActivityItem[];
   stockSource: "projection" | "unavailable";
 };

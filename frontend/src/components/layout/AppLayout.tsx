@@ -219,7 +219,7 @@ export function AppLayout({ children }: AppLayoutProps) {
         <button
           type="button"
           onClick={closeMobileMenu}
-          className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-slate-500 transition hover:bg-slate-100 dark:hover:bg-slate-800 lg:hidden"
+          className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-[var(--app-foreground-muted)] transition hover:bg-[var(--app-surface-elevated)] dark:hover:bg-[var(--app-card)] lg:hidden"
           aria-label="Close navigation"
         >
           <X className="h-5 w-5" />
@@ -263,17 +263,9 @@ export function AppLayout({ children }: AppLayoutProps) {
                 desktopExpanded ? "gap-3 px-3" : "justify-center px-2"
               } ${
                 isSelected
-                  ? "text-white shadow-sm"
-                  : "text-slate-600 hover:bg-slate-100 hover:text-slate-950 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white"
+                  ? "bg-[var(--brand-primary)] text-[var(--brand-primary-contrast)] shadow-sm"
+                  : "text-[var(--app-foreground-subtle)] hover:bg-[var(--app-surface-elevated)] hover:text-[var(--app-foreground)] dark:hover:text-[var(--app-foreground)]"
               }`}
-              style={
-                isSelected
-                  ? {
-                      background: "var(--brand-primary)",
-                      color: "var(--brand-primary-contrast)",
-                    }
-                  : undefined
-              }
             >
               <Icon className="h-[18px] w-[18px] shrink-0" strokeWidth={1.8} />
 
@@ -305,7 +297,7 @@ export function AppLayout({ children }: AppLayoutProps) {
         }`}
       >
         {desktopExpanded ? (
-          <div className="rounded-xl border border-border bg-slate-50 p-3 dark:bg-slate-800/60">
+          <div className="rounded-xl border border-border bg-[var(--app-surface-elevated)] p-3 dark:bg-[var(--app-card)]">
             <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-400">
               Active business
             </p>
@@ -320,7 +312,7 @@ export function AppLayout({ children }: AppLayoutProps) {
           <button
             type="button"
             onClick={() => navigate("/settings")}
-            className="flex h-11 w-full items-center justify-center rounded-xl text-slate-500 transition hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800"
+            className="flex h-11 w-full items-center justify-center rounded-xl text-[var(--app-foreground-muted)] transition hover:bg-[var(--app-surface-elevated)] dark:text-[var(--app-foreground-subtle)] dark:hover:bg-[var(--app-card)]"
             title={activeBusiness?.name ?? "Business settings"}
             aria-label="Business settings"
           >
@@ -345,7 +337,7 @@ export function AppLayout({ children }: AppLayoutProps) {
       <aside
         onMouseEnter={() => setSidebarHovered(true)}
         onMouseLeave={() => setSidebarHovered(false)}
-        className={`fixed inset-y-0 left-0 z-50 flex w-[276px] flex-col border-r border-border bg-white shadow-xl transition-[width,transform] duration-200 dark:bg-slate-900 lg:sticky lg:top-0 lg:z-20 lg:h-screen lg:translate-x-0 lg:shadow-none ${
+        className={`fixed inset-y-0 left-0 z-50 flex w-[276px] flex-col border-r border-border bg-[var(--app-card)] shadow-lg transition-[width,transform] duration-200 dark:bg-[var(--app-card)] lg:sticky lg:top-0 lg:z-20 lg:h-screen lg:translate-x-0 lg:shadow-none ${
           mobileMenuOpen ? "translate-x-0" : "-translate-x-full"
         } ${desktopExpanded ? "lg:w-[276px]" : "lg:w-[76px]"}`}
       >
@@ -353,7 +345,7 @@ export function AppLayout({ children }: AppLayoutProps) {
       </aside>
 
       <div className="flex min-h-screen min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-30 flex h-[68px] shrink-0 items-center justify-between border-b border-border bg-white/90 px-3 backdrop-blur-xl dark:bg-slate-900/90 sm:px-5 lg:px-7">
+        <header className="sticky top-0 z-30 flex h-[68px] shrink-0 items-center justify-between border-b border-border bg-[var(--app-card)]/95 px-3 backdrop-blur-xl dark:bg-[var(--app-card)]/95 sm:px-5 lg:px-7">
           <div className="flex min-w-0 items-center gap-3">
             <button
               type="button"
@@ -368,7 +360,7 @@ export function AppLayout({ children }: AppLayoutProps) {
             <button
               type="button"
               onClick={() => setSidebarCollapsed((collapsed) => !collapsed)}
-              className="hidden h-10 w-10 shrink-0 items-center justify-center rounded-xl text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white lg:inline-flex"
+              className="hidden h-10 w-10 shrink-0 items-center justify-center rounded-xl text-[var(--app-foreground-muted)] transition hover:bg-[var(--app-surface-elevated)] hover:text-[var(--app-foreground)] dark:text-[var(--app-foreground-subtle)] dark:hover:bg-[var(--app-card)] dark:hover:text-[var(--app-foreground)] lg:inline-flex"
               title={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
               aria-label={
                 sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"
@@ -421,7 +413,7 @@ export function AppLayout({ children }: AppLayoutProps) {
                   role="dialog"
                   aria-modal="true"
                   aria-labelledby="notification-panel-title"
-                  className="fixed right-3 top-[76px] z-50 w-[calc(100vw-24px)] max-w-[420px] overflow-hidden rounded-2xl border border-border bg-white shadow-2xl dark:bg-slate-900 sm:right-5 lg:right-7"
+                  className="fixed right-3 top-[76px] z-50 w-[calc(100vw-24px)] max-w-[420px] overflow-hidden rounded-2xl border border-border bg-[var(--app-card)] shadow-2xl dark:bg-[var(--app-card)] sm:right-5 lg:right-7"
                 >
                   <div className="flex items-center justify-between border-b border-border px-5 py-4">
                     <div>
@@ -440,14 +432,14 @@ export function AppLayout({ children }: AppLayoutProps) {
                       type="button"
                       onClick={() => setNotificationsOpen(false)}
                       aria-label="Close notification centre"
-                      className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white"
+                      className="flex h-9 w-9 items-center justify-center rounded-lg text-[var(--app-foreground-muted)] transition hover:bg-[var(--app-surface-elevated)] hover:text-[var(--brand-primary)] dark:text-[var(--app-foreground-subtle)] dark:hover:bg-[var(--app-card)] dark:hover:text-[var(--brand-primary)]"
                     >
                       <X className="h-4 w-4" />
                     </button>
                   </div>
 
                   <div className="px-5 py-12 text-center">
-                    <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-300">
+                    <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-[var(--app-surface-elevated)] text-[var(--app-foreground-subtle)] dark:bg-[var(--app-card)] dark:text-[var(--app-foreground-muted)]">
                       <Bell className="h-6 w-6" strokeWidth={1.7} />
                     </div>
 
@@ -461,7 +453,7 @@ export function AppLayout({ children }: AppLayoutProps) {
                     </p>
                   </div>
 
-                  <div className="border-t border-border bg-slate-50/80 px-5 py-3 dark:bg-slate-800/40">
+                  <div className="border-t border-border bg-[var(--app-surface-elevated)]/80 px-5 py-3 dark:bg-[var(--app-card)]">
                     <p className="text-center text-[11px] text-slate-400">
                       BizFlow ZW notification centre
                     </p>
@@ -474,7 +466,7 @@ export function AppLayout({ children }: AppLayoutProps) {
               <button
                 type="button"
                 onClick={() => setProfileMenuOpen((open) => !open)}
-                className="flex items-center gap-2 rounded-xl p-1.5 text-left transition hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary dark:hover:bg-slate-800"
+                className="flex items-center gap-2 rounded-xl p-1.5 text-left transition hover:bg-[var(--app-surface-elevated)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-primary)] dark:hover:bg-[var(--app-card)]"
                 aria-label="Open account menu"
                 aria-expanded={profileMenuOpen}
                 aria-haspopup="menu"
@@ -521,7 +513,7 @@ export function AppLayout({ children }: AppLayoutProps) {
                   <div
                     role="menu"
                     aria-label="Account options"
-                    className="absolute right-0 top-[calc(100%+12px)] z-50 w-[min(300px,calc(100vw-24px))] overflow-hidden rounded-2xl border border-border bg-white shadow-2xl dark:bg-slate-900"
+                    className="absolute right-0 top-[calc(100%+12px)] z-50 w-[min(300px,calc(100vw-24px))] overflow-hidden rounded-2xl border border-border bg-[var(--app-card)] shadow-2xl dark:bg-[var(--app-card)]"
                   >
                     <div className="border-b border-border px-4 py-4">
                       <p className="truncate text-sm font-semibold text-foreground">
@@ -540,9 +532,9 @@ export function AppLayout({ children }: AppLayoutProps) {
                           setProfileMenuOpen(false);
                           navigate("/settings#profile");
                         }}
-                        className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium text-slate-700 transition hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
+                        className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium text-[var(--app-foreground)] transition hover:bg-[var(--app-surface-elevated)] dark:text-[var(--app-foreground)] dark:hover:bg-[var(--app-card)]"
                       >
-                        <UserRound className="h-4 w-4 text-slate-400" />
+                        <UserRound className="h-4 w-4 text-[var(--app-foreground-subtle)]" />
                         My Profile
                       </button>
 
@@ -553,9 +545,9 @@ export function AppLayout({ children }: AppLayoutProps) {
                           setProfileMenuOpen(false);
                           navigate("/settings");
                         }}
-                        className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium text-slate-700 transition hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
+                        className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium text-[var(--app-foreground)] transition hover:bg-[var(--app-surface-elevated)] dark:text-[var(--app-foreground)] dark:hover:bg-[var(--app-card)]"
                       >
-                        <Settings className="h-4 w-4 text-slate-400" />
+                        <Settings className="h-4 w-4 text-[var(--app-foreground-subtle)]" />
                         Account Settings
                       </button>
                     </div>
@@ -574,9 +566,9 @@ export function AppLayout({ children }: AppLayoutProps) {
                             console.error("Failed to sign out", error);
                           }
                         }}
-                        className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-semibold text-rose-600 transition hover:bg-rose-50 dark:text-rose-400 dark:hover:bg-rose-950/30"
+                        className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-semibold text-red-600 transition hover:bg-red-50/40 dark:text-red-400 dark:hover:bg-red-950/20"
                       >
-                        <LogOut className="h-4 w-4" />
+                        <LogOut className="h-4 w-4 text-red-600" />
                         Sign out
                       </button>
                     </div>

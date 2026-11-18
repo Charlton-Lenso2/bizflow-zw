@@ -168,6 +168,32 @@ function mapInventoryToActivity(rows: Row[]): DashboardActivityItem[] {
   });
 }
 
+export async function fetchStockStatusCounts(
+  businessId: string,
+): Promise<{ lowStockCount: number; outOfStockCount: number }> {
+  const { data, error } = await supabase
+    .from("inventory_stock_balances")
+    .select("quantity_crates")
+    .eq("business_id", businessId);
+
+  if (error) throw error;
+
+  const rows = data ?? [];
+  let lowStockCount = 0;
+  let outOfStockCount = 0;
+
+  for (const row of rows) {
+    const quantity = asNumber(row.quantity_crates);
+    if (quantity === 0) {
+      outOfStockCount += 1;
+    } else if (quantity <= 10) {
+      lowStockCount += 1;
+    }
+  }
+
+  return { lowStockCount, outOfStockCount };
+}
+
 export async function fetchDashboardSummary(
   businessId: string,
 ): Promise<DashboardSummary> {
@@ -178,6 +204,7 @@ export async function fetchDashboardSummary(
     activeVariantCount,
     stockSummary,
     completedSalesCount,
+    stockStatus,
     salesRows,
     inventoryRows,
   ] = await Promise.all([
@@ -185,6 +212,7 @@ export async function fetchDashboardSummary(
     fetchVariantCounts(businessId),
     fetchStockOnHand(businessId),
     fetchCompletedSalesCount(businessId),
+    fetchStockStatusCounts(businessId),
     fetchRecentSales(businessId),
     fetchRecentInventoryActivity(businessId),
   ]);
@@ -203,6 +231,8 @@ export async function fetchDashboardSummary(
     activeVariantCount,
     stockOnHand: stockSummary.stockOnHand,
     completedSalesCount,
+    lowStockCount: stockStatus.lowStockCount,
+    outOfStockCount: stockStatus.outOfStockCount,
     recentActivity: recentActivity.slice(0, 6),
     stockSource: stockSummary.stockSource,
   };

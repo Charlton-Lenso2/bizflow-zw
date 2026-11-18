@@ -1,6 +1,6 @@
 import type { ButtonHTMLAttributes, ReactNode } from 'react'
 
-type ButtonVariant = 'primary' | 'secondary' | 'ghost'
+type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger'
 
 type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
   variant?: ButtonVariant
@@ -8,22 +8,14 @@ type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
   children: ReactNode
 }
 
-const variantStyles: Record<ButtonVariant, Record<string, string>> = {
-  primary: {
-    background: 'var(--brand-primary)',
-    color: 'var(--brand-primary-contrast)',
-    borderColor: 'var(--brand-primary)',
-  },
-  secondary: {
-    background: 'var(--brand-highlight)',
-    color: 'var(--brand-primary)',
-    borderColor: 'var(--brand-primary)',
-  },
-  ghost: {
-    background: 'transparent',
-    color: 'var(--brand-primary)',
-    borderColor: 'transparent',
-  },
+const baseClasses =
+  'inline-flex items-center justify-center rounded-xl border px-4 py-2.5 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand-primary disabled:cursor-not-allowed disabled:opacity-50'
+
+const variantClasses: Record<ButtonVariant, string> = {
+  primary: `${baseClasses} bg-[var(--brand-primary)] text-[var(--brand-primary-contrast)] border-[var(--brand-primary)] hover:opacity-92`,
+  secondary: `${baseClasses} bg-[var(--brand-highlight)] text-[var(--brand-primary)] border-[var(--brand-primary)] hover:bg-[var(--brand-highlight)] hover:opacity-92`,
+  ghost: `${baseClasses} bg-transparent text-[var(--app-foreground-muted)] hover:bg-[var(--app-surface-elevated)] hover:text-[var(--app-foreground)]`,
+  danger: `${baseClasses} bg-transparent text-[var(--app-foreground-muted)] hover:bg-red-50/40 hover:text-red-600 dark:hover:bg-red-950/20 dark:hover:text-red-400`,
 }
 
 export function Button({
@@ -32,23 +24,21 @@ export function Button({
   className = '',
   disabled,
   children,
-  style,
   ...props
 }: ButtonProps) {
   return (
     <button
       type="button"
       disabled={disabled || isLoading}
-      className={`inline-flex items-center justify-center rounded-xl border px-4 py-2.5 text-sm font-medium transition focus:outline-none focus:ring-2 focus:ring-slate-300 disabled:cursor-not-allowed ${className}`}
-      style={{
-        ...variantStyles[variant],
-        ...style,
-      }}
+      className={`${variantClasses[variant]} ${className}`}
       {...props}
     >
       {isLoading ? (
         <span className="inline-flex items-center gap-2">
-          <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" aria-hidden="true" />
+          <span
+            className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent"
+            aria-hidden="true"
+          />
           <span>{children}</span>
         </span>
       ) : (

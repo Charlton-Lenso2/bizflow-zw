@@ -15,14 +15,23 @@ export function Input({
   const inputId = id ?? props.name
 
   return (
-    <label className="block space-y-2 text-sm text-slate-700" htmlFor={inputId}>
-      {label ? <span className="font-medium text-slate-700">{label}</span> : null}
+    <label
+      className="block space-y-2"
+      htmlFor={inputId}
+    >
+      {label ? (
+        <span className="block text-xs font-semibold tracking-wider text-[var(--app-foreground-subtle)] uppercase">
+          {label}
+        </span>
+      ) : null}
       <input
         id={inputId}
-        className={`w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-slate-900 shadow-sm outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-100 ${error ? 'border-red-300 focus:border-red-400 focus:ring-red-100' : ''} ${className}`}
+        className={`w-full rounded-xl border border-[var(--app-border)] bg-[var(--app-input)] px-3 py-2.5 text-sm text-[var(--app-foreground)] shadow-sm outline-none transition focus:border-[var(--brand-primary)] focus:ring-2 focus:ring-[var(--brand-primary)]/20 disabled:bg-[var(--app-surface-elevated)] disabled:text-[var(--app-foreground-subtle)] disabled:cursor-not-allowed ${error ? 'border-red-500/60 focus:border-red-500 focus:ring-red-500/20' : ''} ${className}`}
         {...props}
       />
-      {error ? <span className="block text-xs text-red-600">{error}</span> : null}
+      {error ? (
+        <span className="block text-xs text-red-600 dark:text-red-400">{error}</span>
+      ) : null}
     </label>
   )
 }

@@ -252,6 +252,10 @@ export function DashboardPage() {
     },
   ];
 
+  const lowStockCount = summary?.lowStockCount ?? 0;
+  const outOfStockCount = summary?.outOfStockCount ?? 0;
+  const stockNeedsAttention = lowStockCount > 0 || outOfStockCount > 0;
+
   return (
     <div className="mx-auto w-full max-w-[1600px] space-y-7 pb-8">
       <header className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
@@ -367,6 +371,27 @@ export function DashboardPage() {
               })}
             </div>
           </section>
+
+          {stockNeedsAttention ? (
+            <Alert variant="warning" title="Low stock attention needed">
+              {outOfStockCount > 0 && (
+                <>
+                  <strong>{outOfStockCount}</strong> product variant
+                  {outOfStockCount !== 1 ? "s are" : " is"} out of stock.
+                  {lowStockCount > 0 && " "}
+                </>
+              )}
+              {lowStockCount > 0 && (
+                <>
+                  <strong>{lowStockCount}</strong> product variant
+                  {lowStockCount !== 1 ? "s are" : " is"} running low
+                  (10 crates or fewer).
+                </>
+              )}
+              Restock popular Coca-Cola crate variants before they affect
+              customer orders.
+            </Alert>
+          ) : null}
 
           <section className="overflow-hidden rounded-2xl border border-border bg-white shadow-sm dark:bg-slate-900">
             <div className="flex flex-col gap-4 p-5 sm:p-6 xl:flex-row xl:items-center xl:justify-between">

@@ -16,7 +16,7 @@ export function ThemeSwitcher() {
       onClick={toggleTheme}
       aria-label={`Switch to ${isDark ? "light" : "dark"} mode`}
       title={`Switch to ${isDark ? "light" : "dark"} mode`}
-      className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-[var(--app-border)] bg-[var(--app-card)] text-[var(--app-muted)] shadow-sm transition-all duration-200 hover:border-[var(--brand-primary)] hover:bg-[var(--app-muted-bg)] hover:text-[var(--brand-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-primary)]"
+      className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-[var(--app-border)] bg-[var(--app-card)] text-[var(--app-foreground-muted)] shadow-sm transition-all hover:border-[var(--brand-primary)] hover:bg-[var(--app-surface-elevated)] hover:text-[var(--brand-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-primary)]"
     >
       {isDark ? (
         <Sun size={18} strokeWidth={1.8} />
