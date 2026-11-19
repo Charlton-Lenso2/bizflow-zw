@@ -1,0 +1,33 @@
+{
+  "id": "/",
+  "name": "BizFlow ZW",
+  "short_name": "BizFlow",
+  "description": "A smarter way to manage business operations, sales, inventory, customers and credit.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0F1F3D",
+  "theme_color": "#1D4ED8",
+  "categories": ["business", "finance", "productivity"],
+  "icons": [
+    {
+      "src": "/bizflow-icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/bizflow-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/bizflow-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

@@ -1,39 +1,39 @@
-import type { ReactNode } from 'react'
-import { Navigate, Route, Routes } from 'react-router-dom'
-import { LoginPage } from '../features/auth/pages/LoginPage'
-import { SignupPage } from '../features/auth/pages/SignupPage'
-import { BusinessOnboardingPage } from '../features/business/pages/BusinessOnboardingPage'
-import { DashboardPage } from '../features/dashboard/pages/DashboardPage'
-import { CalculatorPage } from '../features/calculator/pages/CalculatorPage'
-import { CataloguePage } from '../features/catalogue/pages/CataloguePage'
-import { InventoryPage } from '../features/inventory/pages/InventoryPage'
-import { CustomerDirectoryPage } from '../features/customers/pages/CustomerDirectoryPage'
-import { CustomerDetailPage } from '../features/customers/pages/CustomerDetailPage'
-import { POSPage } from '../features/sales/pages/POSPage'
-import { SalesPage } from '../features/sales/pages/SalesPage'
-import { SaleDetailPage } from '../features/sales/pages/SaleDetailPage'
-import { AiAssistantPage } from '../features/ai/pages/AiAssistantPage'
-import { PackagingPage } from '../features/packaging/pages/PackagingPage'
-import { CreditPage } from '../features/credit/pages/CreditPage'
-import { ReportsPage } from '../features/reports/pages/ReportsPage'
-import { SettingsPage } from '../features/settings/pages/SettingsPage'
-import { AppLayout } from '../components/layout/AppLayout'
-import { useAuth } from '../features/auth/hooks/useAuth'
-import { LoadingState } from '../components/ui/LoadingState'
-import { ProtectedRoute } from './ProtectedRoute'
+import type { ReactNode } from "react";
+import { Navigate, Route, Routes } from "react-router-dom";
+import { LoginPage } from "../features/auth/pages/LoginPage";
+import { SignupPage } from "../features/auth/pages/SignupPage";
+import { BusinessOnboardingPage } from "../features/business/pages/BusinessOnboardingPage";
+import { DashboardPage } from "../features/dashboard/pages/DashboardPage";
+import { CalculatorPage } from "../features/calculator/pages/CalculatorPage";
+import { CataloguePage } from "../features/catalogue/pages/CataloguePage";
+import { InventoryPage } from "../features/inventory/pages/InventoryPage";
+import { CustomerDirectoryPage } from "../features/customers/pages/CustomerDirectoryPage";
+import { CustomerDetailPage } from "../features/customers/pages/CustomerDetailPage";
+import { POSPage } from "../features/sales/pages/POSPage";
+import { SalesPage } from "../features/sales/pages/SalesPage";
+import { SaleDetailPage } from "../features/sales/pages/SaleDetailPage";
+import { AiAssistantPage } from "../features/ai/pages/AiAssistantPage";
+import { PackagingPage } from "../features/packaging/pages/PackagingPage";
+import { CreditPage } from "../features/credit/pages/CreditPage";
+import { ReportsPage } from "../features/reports/pages/ReportsPage";
+import { SettingsPage } from "../features/settings/pages/SettingsPage";
+import { AppLayout } from "../components/layout/AppLayout";
+import { useAuth } from "../features/auth/hooks/useAuth";
+import { SplashScreen } from "../components/ui/SplashScreen";
+import { ProtectedRoute } from "./ProtectedRoute";
 
 function PublicRoute({ children }: { children: ReactNode }) {
-  const { session, isLoading } = useAuth()
+  const { session, isLoading } = useAuth();
 
   if (isLoading) {
-    return <LoadingState message="Preparing the application..." />
+    return <SplashScreen message="Preparing your workspace..." />;
   }
 
   if (session) {
-    return <Navigate to="/dashboard" replace />
+    return <Navigate to="/dashboard" replace />;
   }
 
-  return children
+  return children;
 }
 
 export function AppRouter() {
@@ -47,6 +47,7 @@ export function AppRouter() {
           </PublicRoute>
         }
       />
+
       <Route
         path="/signup"
         element={
@@ -65,6 +66,7 @@ export function AppRouter() {
             </AppLayout>
           }
         />
+
         <Route
           path="/catalogue"
           element={
@@ -73,6 +75,7 @@ export function AppRouter() {
             </AppLayout>
           }
         />
+
         <Route
           path="/inventory"
           element={
@@ -81,6 +84,7 @@ export function AppRouter() {
             </AppLayout>
           }
         />
+
         <Route
           path="/pos"
           element={
@@ -89,6 +93,7 @@ export function AppRouter() {
             </AppLayout>
           }
         />
+
         <Route
           path="/calculator"
           element={
@@ -97,6 +102,7 @@ export function AppRouter() {
             </AppLayout>
           }
         />
+
         <Route
           path="/customers"
           element={
@@ -105,6 +111,7 @@ export function AppRouter() {
             </AppLayout>
           }
         />
+
         <Route
           path="/customers/:customerId"
           element={
@@ -113,6 +120,7 @@ export function AppRouter() {
             </AppLayout>
           }
         />
+
         <Route
           path="/sales"
           element={
@@ -121,6 +129,7 @@ export function AppRouter() {
             </AppLayout>
           }
         />
+
         <Route
           path="/sales/:saleId"
           element={
@@ -129,10 +138,9 @@ export function AppRouter() {
             </AppLayout>
           }
         />
-        <Route
-          path="/onboarding"
-          element={<BusinessOnboardingPage />}
-        />
+
+        <Route path="/onboarding" element={<BusinessOnboardingPage />} />
+
         <Route
           path="/ai"
           element={
@@ -141,14 +149,47 @@ export function AppRouter() {
             </AppLayout>
           }
         />
-        <Route path="/packaging" element={<AppLayout><PackagingPage /></AppLayout>} />
-        <Route path="/credit" element={<AppLayout><CreditPage /></AppLayout>} />
-        <Route path="/reports" element={<AppLayout><ReportsPage /></AppLayout>} />
-        <Route path="/settings" element={<AppLayout><SettingsPage /></AppLayout>} />
+
+        <Route
+          path="/packaging"
+          element={
+            <AppLayout>
+              <PackagingPage />
+            </AppLayout>
+          }
+        />
+
+        <Route
+          path="/credit"
+          element={
+            <AppLayout>
+              <CreditPage />
+            </AppLayout>
+          }
+        />
+
+        <Route
+          path="/reports"
+          element={
+            <AppLayout>
+              <ReportsPage />
+            </AppLayout>
+          }
+        />
+
+        <Route
+          path="/settings"
+          element={
+            <AppLayout>
+              <SettingsPage />
+            </AppLayout>
+          }
+        />
+
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/login" replace />} />
     </Routes>
-  )
+  );
 }

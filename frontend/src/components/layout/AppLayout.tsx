@@ -209,7 +209,7 @@ export function AppLayout({ children }: AppLayoutProps) {
               <p className="text-sm font-bold tracking-tight text-foreground">
                 BizFlow ZW
               </p>
-              <p className="text-[11px] text-slate-500 dark:text-slate-400">
+              <p className="text-[11px] text-[var(--app-foreground-muted)] dark:text-[var(--app-foreground-subtle)]">
                 Wholesale management
               </p>
             </div>
@@ -228,7 +228,7 @@ export function AppLayout({ children }: AppLayoutProps) {
 
       <div className={`pb-2 pt-6 ${desktopExpanded ? "px-4" : "px-2"}`}>
         {desktopExpanded ? (
-          <p className="px-3 text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-400">
+          <p className="px-3 text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--app-foreground-subtle)]">
             Workspace
           </p>
         ) : (
@@ -298,13 +298,13 @@ export function AppLayout({ children }: AppLayoutProps) {
       >
         {desktopExpanded ? (
           <div className="rounded-xl border border-border bg-[var(--app-surface-elevated)] p-3 dark:bg-[var(--app-card)]">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-400">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--app-foreground-subtle)]">
               Active business
             </p>
             <p className="mt-1.5 truncate text-sm font-semibold text-foreground">
               {activeBusiness?.name ?? "No business selected"}
             </p>
-            <p className="mt-1 text-[11px] text-slate-500 dark:text-slate-400">
+            <p className="mt-1 text-[11px] text-[var(--app-foreground-muted)] dark:text-[var(--app-foreground-subtle)]">
               BizFlow workspace
             </p>
           </div>
@@ -330,7 +330,7 @@ export function AppLayout({ children }: AppLayoutProps) {
           type="button"
           aria-label="Close navigation overlay"
           onClick={closeMobileMenu}
-          className="fixed inset-0 z-40 bg-slate-950/50 backdrop-blur-[2px] lg:hidden"
+          className="fixed inset-0 z-40 bg-[var(--app-card)] backdrop-blur-[2px] lg:hidden"
         />
       )}
 
@@ -350,7 +350,7 @@ export function AppLayout({ children }: AppLayoutProps) {
             <button
               type="button"
               onClick={() => setMobileMenuOpen(true)}
-              className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-border text-slate-600 transition hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800 lg:hidden"
+              className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-[var(--app-border)] text-[var(--app-foreground-muted)] transition hover:bg-[var(--app-surface-elevated)] dark:text-[var(--app-foreground-subtle)] dark:hover:bg-[var(--app-card)] lg:hidden"
               aria-label="Open navigation"
               aria-expanded={mobileMenuOpen}
             >
@@ -378,7 +378,7 @@ export function AppLayout({ children }: AppLayoutProps) {
               <p className="truncate text-sm font-semibold text-foreground">
                 {currentPage}
               </p>
-              <p className="hidden text-[11px] text-slate-500 dark:text-slate-400 sm:block">
+              <p className="hidden text-[11px] text-[var(--app-foreground-muted)] dark:text-[var(--app-foreground-subtle)] sm:block">
                 Manage your wholesale operations
               </p>
             </div>
@@ -390,7 +390,7 @@ export function AppLayout({ children }: AppLayoutProps) {
             <button
               type="button"
               onClick={() => setNotificationsOpen((open) => !open)}
-              className="relative inline-flex h-10 w-10 items-center justify-center rounded-xl border border-border text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white"
+              className="relative inline-flex h-10 w-10 items-center justify-center rounded-xl border border-border text-[var(--app-foreground-muted)] transition hover-bg-var--app-surface-elevated hover-text-[var(--app-foreground)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 dark:text-[var(--app-foreground-subtle)] dark-hover-bg-var--app-card dark:hover:text-white"
               aria-label="Notifications"
               aria-expanded={notificationsOpen}
               aria-controls="bizflow-notification-panel"
@@ -405,7 +405,7 @@ export function AppLayout({ children }: AppLayoutProps) {
                   type="button"
                   aria-label="Close notifications"
                   onClick={() => setNotificationsOpen(false)}
-                  className="fixed inset-0 z-40 cursor-default bg-slate-950/20 backdrop-blur-[1px]"
+                  className="fixed inset-0 z-40 cursor-default bg-[var(--app-card)]/20 backdrop-blur-[1px]"
                 />
 
                 <section
@@ -423,7 +423,7 @@ export function AppLayout({ children }: AppLayoutProps) {
                       >
                         Notifications
                       </h2>
-                      <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
+                      <p className="mt-0.5 text-xs text-[var(--app-foreground-muted)] dark:text-[var(--app-foreground-subtle)]">
                         Updates from your business workspace
                       </p>
                     </div>
@@ -447,14 +447,14 @@ export function AppLayout({ children }: AppLayoutProps) {
                       You're all caught up
                     </h3>
 
-                    <p className="mx-auto mt-2 max-w-[270px] text-xs leading-5 text-slate-500 dark:text-slate-400">
+                    <p className="mx-auto mt-2 max-w-[270px] text-xs leading-5 text-[var(--app-foreground-muted)] dark:text-[var(--app-foreground-subtle)]">
                       There are no notifications yet. Important business
                       updates and alerts will appear here when available.
                     </p>
                   </div>
 
                   <div className="border-t border-border bg-[var(--app-surface-elevated)]/80 px-5 py-3 dark:bg-[var(--app-card)]">
-                    <p className="text-center text-[11px] text-slate-400">
+                    <p className="text-center text-[11px] text-[var(--app-foreground-subtle)]">
                       BizFlow ZW notification centre
                     </p>
                   </div>
@@ -489,13 +489,13 @@ export function AppLayout({ children }: AppLayoutProps) {
                       user?.email?.split("@")[0] ||
                       "User"}
                   </p>
-                  <p className="text-[10px] text-slate-500 dark:text-slate-400">
+                  <p className="text-[10px] text-[var(--app-foreground-muted)] dark:text-[var(--app-foreground-subtle)]">
                     My account
                   </p>
                 </div>
 
                 <ChevronDown
-                  className={`hidden h-4 w-4 text-slate-400 transition-transform sm:block ${
+                  className={`hidden h-4 w-4 text-[var(--app-foreground-subtle)] transition-transform sm:block ${
                     profileMenuOpen ? "rotate-180" : ""
                   }`}
                 />
@@ -519,7 +519,7 @@ export function AppLayout({ children }: AppLayoutProps) {
                       <p className="truncate text-sm font-semibold text-foreground">
                         {profile?.full_name?.trim() || "Your account"}
                       </p>
-                      <p className="mt-1 truncate text-xs text-slate-500 dark:text-slate-400">
+                      <p className="mt-1 truncate text-xs text-[var(--app-foreground-muted)] dark:text-[var(--app-foreground-subtle)]">
                         {user?.email ?? ""}
                       </p>
                     </div>

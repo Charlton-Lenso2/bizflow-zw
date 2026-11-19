@@ -1,37 +1,43 @@
-import type { InputHTMLAttributes } from 'react'
+import type { InputHTMLAttributes } from "react";
 
 type InputProps = InputHTMLAttributes<HTMLInputElement> & {
-  label?: string
-  error?: string
-}
+  label?: string;
+  error?: string;
+};
 
 export function Input({
   label,
   id,
   error,
-  className = '',
+  className = "",
   ...props
 }: InputProps) {
-  const inputId = id ?? props.name
+  const inputId = id ?? props.name;
 
   return (
-    <label
-      className="block space-y-2"
-      htmlFor={inputId}
-    >
-      {label ? (
-        <span className="block text-xs font-semibold tracking-wider text-[var(--app-foreground-subtle)] uppercase">
+    <label className="block space-y-2" htmlFor={inputId}>
+      {label && (
+        <span className="block text-xs font-semibold uppercase tracking-wider text-[var(--app-foreground-subtle)]">
           {label}
         </span>
-      ) : null}
+      )}
+
       <input
         id={inputId}
-        className={`w-full rounded-xl border border-[var(--app-border)] bg-[var(--app-input)] px-3 py-2.5 text-sm text-[var(--app-foreground)] shadow-sm outline-none transition focus:border-[var(--brand-primary)] focus:ring-2 focus:ring-[var(--brand-primary)]/20 disabled:bg-[var(--app-surface-elevated)] disabled:text-[var(--app-foreground-subtle)] disabled:cursor-not-allowed ${error ? 'border-red-500/60 focus:border-red-500 focus:ring-red-500/20' : ''} ${className}`}
+        className={`w-full rounded-xl border border-[var(--app-border)] bg-[var(--app-input)] px-3 py-3 text-sm text-[var(--app-foreground)] shadow-sm outline-none transition placeholder:text-[var(--app-foreground-subtle)] focus:border-[var(--brand-primary)] focus:ring-2 focus:ring-[var(--brand-primary)]/20 disabled:cursor-not-allowed disabled:bg-[var(--app-surface-elevated)] disabled:text-[var(--app-foreground-subtle)] ${
+          error
+            ? "border-red-500/60 focus:border-red-500 focus:ring-red-500/20"
+            : ""
+        } ${className}`}
+        aria-invalid={error ? true : undefined}
         {...props}
       />
-      {error ? (
-        <span className="block text-xs text-red-600 dark:text-red-400">{error}</span>
-      ) : null}
+
+      {error && (
+        <span className="block text-xs text-red-600 dark:text-red-400">
+          {error}
+        </span>
+      )}
     </label>
-  )
+  );
 }

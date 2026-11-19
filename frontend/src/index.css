@@ -233,3 +233,140 @@
     background-clip: padding-box;
   }
 }
+
+
+/* BizFlow branded application splash screen */
+
+.bizflow-splash {
+  isolation: isolate;
+  background:
+    radial-gradient(ellipse at 50% 42%, rgb(29 78 216 / 0.18), transparent 42%),
+    linear-gradient(145deg, #0b1730 0%, #0f1f3d 48%, #101b32 100%);
+}
+
+.bizflow-splash-grid {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0.12;
+  background-image:
+    linear-gradient(rgb(148 163 184 / 0.12) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(148 163 184 / 0.12) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: radial-gradient(ellipse at center, black, transparent 75%);
+}
+
+.bizflow-splash-glow {
+  position: absolute;
+  z-index: -1;
+  width: 22rem;
+  height: 22rem;
+  border-radius: 9999px;
+  filter: blur(90px);
+  pointer-events: none;
+  opacity: 0.16;
+}
+
+.bizflow-splash-glow-one {
+  top: -12rem;
+  left: -9rem;
+  background: #2563eb;
+  animation: bizflow-glow-float 8s ease-in-out infinite alternate;
+}
+
+.bizflow-splash-glow-two {
+  right: -12rem;
+  bottom: -12rem;
+  background: #f59e0b;
+  animation: bizflow-glow-float 10s ease-in-out infinite alternate-reverse;
+}
+
+.bizflow-splash-logo-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: bizflow-logo-enter 800ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.bizflow-splash-logo-wrap::after {
+  position: absolute;
+  inset: -12px;
+  z-index: -1;
+  border: 1px solid rgb(147 197 253 / 0.2);
+  border-radius: 2rem;
+  content: "";
+  animation: bizflow-logo-pulse 3s ease-in-out infinite;
+}
+
+.bizflow-splash-progress-track {
+  width: 100%;
+  height: 3px;
+  overflow: hidden;
+  border-radius: 9999px;
+  background: rgb(148 163 184 / 0.2);
+}
+
+.bizflow-splash-progress-bar {
+  width: 38%;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #3b82f6, #93c5fd, #f59e0b);
+  animation: bizflow-progress 1.8s ease-in-out infinite;
+}
+
+@keyframes bizflow-logo-enter {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.9);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes bizflow-logo-pulse {
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 0.8;
+    transform: scale(1.07);
+  }
+}
+
+@keyframes bizflow-progress {
+  0% {
+    transform: translateX(-110%);
+  }
+
+  100% {
+    transform: translateX(280%);
+  }
+}
+
+@keyframes bizflow-glow-float {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+
+  to {
+    transform: translate3d(30px, 25px, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bizflow-splash *,
+  .bizflow-splash *::before,
+  .bizflow-splash *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+  }
+}

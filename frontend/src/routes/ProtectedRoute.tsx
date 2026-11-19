@@ -1,17 +1,17 @@
-import { Navigate, Outlet } from 'react-router-dom'
-import { LoadingState } from '../components/ui/LoadingState'
-import { useAuth } from '../features/auth/hooks/useAuth'
+import { Navigate, Outlet } from "react-router-dom";
+import { SplashScreen } from "../components/ui/SplashScreen";
+import { useAuth } from "../features/auth/hooks/useAuth";
 
 export function ProtectedRoute() {
-  const { session, isLoading } = useAuth()
+  const { session, isLoading } = useAuth();
 
   if (isLoading) {
-    return <LoadingState message="Checking your session..." />
+    return <SplashScreen message="Securing your business workspace..." />;
   }
 
   if (!session) {
-    return <Navigate to="/login" replace />
+    return <Navigate to="/login" replace />;
   }
 
-  return <Outlet />
+  return <Outlet />;
 }
