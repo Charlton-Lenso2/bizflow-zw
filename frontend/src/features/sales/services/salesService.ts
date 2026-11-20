@@ -247,57 +247,109 @@ export async function fetchSalesForBusiness(businessId: string): Promise<SaleRow
   return (data ?? []) as unknown as SaleRow[]
 }
 
-export async function fetchSaleDetail(businessId: string, saleId: string): Promise<SaleDetailRow | null> {
-  ensureBusinessScope(businessId)
+export async function fetchSaleDetail(
+  businessId: string,
+  saleId: string,
+): Promise<SaleDetailRow | null> {
+  ensureBusinessScope(businessId);
 
   const { data, error } = await supabase
-    .from('sales')
+    .from("sales")
     .select(
-      'id, sale_number, customer_id, status, currency, subtotal, discount_amount, total_amount, created_at, customers(id, full_name, business_name), sale_items(id, sale_id, product_variant_id, product_name_snapshot, variant_name_snapshot, quantity_crates, unit_price, discount_amount, line_total)',
+      `
+      id,
+      sale_number,
+      customer_id,
+      status,
+      currency,
+      subtotal,
+      discount_amount,
+      total_amount,
+      created_at,
+      customers (
+        id,
+        full_name,
+        business_name
+      ),
+      sale_items (
+        id,
+        sale_id,
+        product_variant_id,
+        product_name_snapshot,
+        variant_name_snapshot,
+        quantity_crates,
+        unit_price,
+        discount_amount,
+        line_total,
+        created_at
+      )
+    `,
     )
-    .eq('business_id', businessId)
-    .eq('id', saleId)
-    .limit(1)
-    .single()
+    .eq("business_id", businessId)
+    .eq("id", saleId)
+    .single();
 
   if (error) {
-    if (error.code === 'PGRST116') {
-      return null
+    if (error.code === "PGRST116") {
+      return null;
     }
-    throw error
+    throw error;
   }
 
-  const sale = data as unknown as SaleDetailRow
+  const sale = data as unknown as SaleDetailRow;
 
-  const [{ data: paymentRows, error: paymentError }, { data: depositRows, error: depositError }] = await Promise.all([
+  const [
+    { data: paymentRows, error: paymentError },
+    { data: depositRows, error: depositError },
+  ] = await Promise.all([
     supabase
-      .from('customer_ledger_entries')
-      .select('id, sale_id, amount, payment_method, reference, created_at, entry_type')
-      .eq('business_id', businessId)
-      .eq('sale_id', saleId)
-      .order('created_at', { ascending: false }),
-    supabase
-      .from('packaging_deposits')
+      .from("customer_ledger_entries")
       .select(
-        'id, sale_id, business_id, packaging_type_id, quantity, amount, currency, status, is_refunded, refunded_at, created_at, packaging_types(id, name, packaging_category)',
+        "id, sale_id, amount, payment_method, reference, created_at, entry_type",
       )
-      .eq('business_id', businessId)
-      .eq('sale_id', saleId)
-      .order('created_at', { ascending: false }),
-  ])
+      .eq("business_id", businessId)
+      .eq("sale_id", saleId)
+      .order("created_at", { ascending: false }),
+
+    supabase
+      .from("packaging_deposits")
+      .select(
+        `
+        id,
+        sale_id,
+        business_id,
+        packaging_type_id,
+        quantity_owed,
+        amount,
+        currency,
+        status,
+        refunded_at,
+        created_at,
+        packaging_types (
+          id,
+          name,
+          packaging_category
+        )
+      `,
+      )
+      .eq("business_id", businessId)
+      .eq("sale_id", saleId)
+      .order("created_at", { ascending: false }),
+  ]);
 
   if (paymentError) {
-    throw paymentError
+    throw paymentError;
   }
 
   if (depositError) {
-    throw depositError
+    throw depositError;
   }
 
-  sale.payments = (paymentRows ?? []) as SalePaymentEntry[]
-  sale.packaging_deposits = (depositRows ?? []) as unknown as SalePackagingDepositRow[]
+  sale.payments = (paymentRows ?? []) as SalePaymentEntry[];
+  sale.packaging_deposits = (depositRows ??
+    []) as unknown as SalePackagingDepositRow[];
 
-  return sale
+  return sale;
 }
 
 export async function createDraftSale(params: {
@@ -430,18 +482,19 @@ export async function makeCustomerPayment(args: {
   return (data ?? {}) as Record<string, unknown>
 }
 
-export async function refundPackagingDeposit(depositId: string): Promise<Record<string, unknown>> {
-  const { data, error } = await supabase.rpc('refund_packaging_deposit', {
-    p_packaging_deposit_id: depositId,
-  })
+export async function refundPackagingDeposit(
+  depositId: string,
+): Promise<Record<string, unknown>> {
+  const { data, error } = await supabase.rpc("refund_packaging_deposit", {
+    p_deposit_id: depositId,
+  });
 
   if (error) {
-    throw error
+    throw error;
   }
 
-  return (data ?? {}) as Record<string, unknown>
+  return (data ?? {}) as Record<string, unknown>;
 }
-
 export function getCustomerLabel(customer: CustomerRecord | null | undefined): string {
   return normaliseCustomerName(customer)
 }

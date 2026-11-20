@@ -29,11 +29,14 @@ export function LoginPage() {
     setStatus("submitting");
 
     try {
-      const result = await signIn({ email: email.trim(), password });
+      const result = await signIn({
+        email: email.trim(),
+        password,
+      });
 
       if (result.error) {
         setError(result.error.message);
-        setStatus("idle");
+        setStatus("error");
         return;
       }
 
@@ -45,7 +48,7 @@ export function LoginPage() {
           ? err.message
           : "An unexpected error occurred. Please try again.",
       );
-      setStatus("idle");
+      setStatus("error");
     } finally {
       setIsSubmitting(false);
     }
@@ -81,14 +84,12 @@ export function LoginPage() {
         />
 
         <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <label
-              htmlFor="login-password"
-              className="text-xs font-semibold uppercase tracking-wider text-[var(--app-foreground-subtle)]"
-            >
-              Password
-            </label>
-          </div>
+          <label
+            htmlFor="login-password"
+            className="text-xs font-semibold uppercase tracking-wider text-[var(--app-foreground-subtle)]"
+          >
+            Password
+          </label>
 
           <div className="relative">
             <Input
@@ -100,18 +101,18 @@ export function LoginPage() {
               onBlur={() => setActiveField(null)}
               autoComplete="current-password"
               placeholder="Enter your password"
-              className="pr-16"
+              className="pr-12"
               required
             />
 
             <button
               type="button"
               onClick={() => setPasswordVisible((visible) => !visible)}
-              className="absolute inset-y-0 right-3 my-auto h-8 rounded-lg px-2 text-xs font-semibold text-[var(--app-foreground-muted)] transition hover:bg-[var(--app-surface-elevated)] hover:text-[var(--app-foreground)]"
+              className="absolute inset-y-0 right-3 flex items-center justify-center text-[var(--app-foreground-muted)] transition hover:text-[var(--brand-primary)]"
               aria-label={passwordVisible ? "Hide password" : "Show password"}
               aria-pressed={passwordVisible}
             >
-              {passwordVisible ? "Hide" : "Show"}
+              {passwordVisible ? <EyeOffIcon /> : <EyeIcon />}
             </button>
           </div>
         </div>
@@ -143,5 +144,45 @@ export function LoginPage() {
         </Link>
       </p>
     </AuthCard>
+  );
+}
+
+function EyeIcon() {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="h-5 w-5"
+      aria-hidden="true"
+    >
+      <path d="M2.5 12s3.5-7 9.5-7 9.5 7 9.5 7-3.5 7-9.5 7-9.5-7-9.5-7Z" />
+      <circle cx="12" cy="12" r="3" />
+    </svg>
+  );
+}
+
+function EyeOffIcon() {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="h-5 w-5"
+      aria-hidden="true"
+    >
+      <path d="m3 3 18 18" />
+      <path d="M10.6 10.6a2 2 0 0 0 2.8 2.8" />
+      <path d="M9.9 5.2A10.8 10.8 0 0 1 12 5c6 0 9.5 7 9.5 7a16.8 16.8 0 0 1-3.1 4.1" />
+      <path d="M6.6 6.6A16.8 16.8 0 0 0 2.5 12s3.5 7 9.5 7a10.8 10.8 0 0 0 3.3-.5" />
+    </svg>
   );
 }

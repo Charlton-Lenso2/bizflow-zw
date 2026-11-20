@@ -121,21 +121,20 @@ export type SalePaymentEntry = {
 }
 
 export type SalePackagingDepositRow = {
-  id: string
-  sale_id?: string | null
-  business_id?: string | null
-  packaging_type_id?: string | null
-  packaging_type_name?: string | null
-  quantity?: number | null
-  amount?: number | null
-  currency?: string | null
-  status?: string | null
-  is_refunded?: boolean | null
-  refunded_at?: string | null
-  created_at?: string | null
+  id: string;
+  sale_id?: string | null;
+  business_id?: string | null;
+  packaging_type_id?: string | null;
+  packaging_type_name?: string | null;
+  quantity_owed?: number | null;
+  amount?: number | null;
+  currency?: string | null;
+  status?: string | null;
+  refunded_at?: string | null;
+  created_at?: string | null;
   packaging_types?: {
-    id?: string | null
-    name?: string | null
-    packaging_category?: string | null
-  } | null
-}
+    id?: string | null;
+    name?: string | null;
+    packaging_category?: string | null;
+  } | null;
+};

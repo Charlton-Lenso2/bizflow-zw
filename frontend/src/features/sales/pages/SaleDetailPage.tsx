@@ -384,15 +384,25 @@ export function SaleDetailPage() {
               const packagingName = deposit.packaging_types?.name ?? deposit.packaging_type_name ?? 'Packaging'
 
               return (
-                <div key={deposit.id} className="rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-800/30">
+                <div
+                  key={deposit.id}
+                  className="rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-800/30"
+                >
                   <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                     <div>
-                      <p className="font-medium text-slate-900 dark:text-white">{packagingName}</p>
-                      <p className="text-sm text-slate-500 dark:text-slate-400">Quantity: {deposit.quantity ?? 0} · Status: {status || 'Unknown'}</p>
+                      <p className="font-medium text-slate-900 dark:text-white">
+                        {packagingName}
+                      </p>
+                      <p className="text-sm text-slate-500 dark:text-slate-400">
+                        Quantity: {deposit.quantity_owed ?? 0} · Status:{" "}
+                        {status || "Unknown"}
+                      </p>
                     </div>
                     <div className="text-right text-sm text-slate-700 dark:text-slate-200">
-                      <div>Amount: {formatMoney(deposit.amount, deposit.currency)}</div>
-                      <div>{deposit.currency ?? 'USD'}</div>
+                      <div>
+                        Amount: {formatMoney(deposit.amount, deposit.currency)}
+                      </div>
+                      <div>{deposit.currency ?? "USD"}</div>
                     </div>
                   </div>
 
@@ -410,7 +420,7 @@ export function SaleDetailPage() {
                     </div>
                   ) : null}
                 </div>
-              )
+              );
             })}
           </div>
         )}
