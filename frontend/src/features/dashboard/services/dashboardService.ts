@@ -10,6 +10,13 @@ type Row = Record<string, unknown>;
 const COMPLETED_SALE_STATUS = "completed";
 const PAGE_SIZE = 1000;
 
+export type TodaySalesSummary = {
+  usd: number;
+  zwg: number;
+  usdCount: number;
+  zwgCount: number;
+};
+
 function asNumber(value: unknown): number {
   if (typeof value === "number" && Number.isFinite(value)) return value;
 
@@ -43,14 +50,14 @@ function dateToLocalString(date: Date): string {
 }
 
 async function fetchProductCounts(businessId: string) {
-  const { count: totalCount, error: totalError } = await supabase
+  const { count, error } = await supabase
     .from("products")
     .select("id", { count: "exact", head: true })
     .eq("business_id", businessId);
 
-  if (totalError) throw totalError;
+  if (error) throw error;
 
-  return totalCount ?? 0;
+  return count ?? 0;
 }
 
 async function fetchVariantCounts(businessId: string) {
@@ -65,9 +72,7 @@ async function fetchVariantCounts(businessId: string) {
   return count ?? 0;
 }
 
-async function fetchStockOnHand(
-  businessId: string,
-): Promise<{
+async function fetchStockOnHand(businessId: string): Promise<{
   stockOnHand: number | null;
   stockSource: "projection" | "unavailable";
 }> {
@@ -184,6 +189,7 @@ export async function fetchStockStatusCounts(
 
   for (const row of rows) {
     const quantity = asNumber(row.quantity_crates);
+
     if (quantity === 0) {
       outOfStockCount += 1;
     } else if (quantity <= 10) {
@@ -238,12 +244,67 @@ export async function fetchDashboardSummary(
   };
 }
 
+export async function fetchTodaySalesSummary(
+  businessId: string,
+): Promise<TodaySalesSummary> {
+  if (!businessId) throw new Error("No active business selected.");
+
+  const today = dateToLocalString(new Date());
+  const start = dateFromLocalString(today);
+  const endExclusive = dateFromLocalString(today);
+  endExclusive.setDate(endExclusive.getDate() + 1);
+
+  const summary: TodaySalesSummary = {
+    usd: 0,
+    zwg: 0,
+    usdCount: 0,
+    zwgCount: 0,
+  };
+
+  for (let offset = 0; ; offset += PAGE_SIZE) {
+    const { data, error } = await supabase
+      .from("sales")
+      .select("currency, total_amount, status, created_at")
+      .eq("business_id", businessId)
+      .gte("created_at", start.toISOString())
+      .lt("created_at", endExclusive.toISOString())
+      .order("created_at", { ascending: true })
+      .range(offset, offset + PAGE_SIZE - 1);
+
+    if (error) throw error;
+
+    const rows = data ?? [];
+
+    for (const row of rows) {
+      if (normaliseStatus(row.status) !== COMPLETED_SALE_STATUS) continue;
+
+      const currency = asString(row.currency)?.trim().toUpperCase();
+      const amount = asNumber(row.total_amount);
+
+      if (currency === "USD") {
+        summary.usd += amount;
+        summary.usdCount += 1;
+      } else if (currency === "ZWG") {
+        summary.zwg += amount;
+        summary.zwgCount += 1;
+      }
+    }
+
+    if (rows.length < PAGE_SIZE) break;
+
+    offset += rows.length;
+  }
+
+  return summary;
+}
+
 export async function fetchSalesTrend(
   businessId: string,
   startDate: string,
   endDate: string,
 ): Promise<SalesTrendPoint[]> {
   if (!businessId) throw new Error("No active business selected.");
+
   if (!startDate || !endDate || startDate > endDate) {
     throw new Error("Select a valid date range.");
   }
@@ -279,7 +340,7 @@ export async function fetchSalesTrend(
     start.getDate(),
   );
 
-  while (cursor <= endExclusive && dateToLocalString(cursor) <= endDate) {
+  while (dateToLocalString(cursor) <= endDate) {
     points.push({
       date: dateToLocalString(cursor),
       label: cursor.toLocaleDateString(undefined, {
