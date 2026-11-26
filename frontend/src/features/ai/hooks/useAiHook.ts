@@ -99,12 +99,41 @@ function persistConversations(
 
 function createConversationTitle(question: string): string {
   const normalized = question.replace(/\s+/g, " ").trim();
+  const lower = normalized.toLowerCase();
 
-  if (normalized.length <= 58) {
-    return normalized;
+  const topics: Array<[RegExp, string]> = [
+    [/\b(packaging|bottles|crates|empties)\b/, "Packaging & Crate Accounts"],
+    [/\b(inventory|stock|low stock|stock levels)\b/, "Inventory & Stock Analysis"],
+    [/\b(customer|customers|credit|balance|balances|debt|debts)\b/, "Customer Credit & Balances"],
+    [/\b(sales|revenue|turnover|selling)\b/, "Sales Performance Overview"],
+    [/\b(product|products|catalogue|catalog|pricing|price)\b/, "Product & Pricing Analysis"],
+    [/\b(profit|profitable|margin|margins)\b/, "Profit & Margin Analysis"],
+    [/\b(payment|payments|paid|pay|transaction)\b/, "Payment Analysis"],
+    [/\b(dashboard|business performance|overview|summary)\b/, "Business Performance Overview"],
+    [/\b(calculator|calculate|calculation)\b/, "Business Calculation"],
+    [/\b(date|calendar|schedule|planning)\b/, "Business Planning"],
+    [/\b(help|how do|what can|guide|explain)\b/, "BizFlow Help & Guidance"],
+  ];
+
+  for (const [pattern, title] of topics) {
+    if (pattern.test(lower)) {
+      return title;
+    }
   }
 
-  return `${normalized.slice(0, 55).trimEnd()}...`;
+  const words = normalized
+    .replace(/[?!.,:;]+/g, "")
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 6);
+
+  const fallback = words
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+
+  return fallback.length > 42
+    ? `${fallback.slice(0, 39).trimEnd()}...`
+    : fallback || "New Conversation";
 }
 
 export const useAiHook = (userId: string, businessId: string) => {

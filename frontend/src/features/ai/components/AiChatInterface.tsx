@@ -27,6 +27,11 @@ interface AiChatInterfaceProps {
   userId: string;
 }
 
+interface ConversationDeleteTarget {
+  id: string;
+  title: string;
+}
+
 type AiContext = "sales" | "inventory" | "customer" | "packaging" | "general";
 
 interface SuggestedQuestion {
@@ -337,6 +342,8 @@ export function AiChatInterface({
 
   const [input, setInput] = useState("");
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [conversationToDelete, setConversationToDelete] =
+    useState<ConversationDeleteTarget | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -346,6 +353,22 @@ export function AiChatInterface({
       block: "end",
     });
   }, [messages, loading]);
+
+  useEffect(() => {
+    if (!conversationToDelete) {
+      return;
+    }
+
+    const handleEscape = (event: globalThis.KeyboardEvent) => {
+      if (event.key === "Escape" && !loading) {
+        setConversationToDelete(null);
+      }
+    };
+
+    window.addEventListener("keydown", handleEscape);
+
+    return () => window.removeEventListener("keydown", handleEscape);
+  }, [conversationToDelete, loading]);
 
   const handleSend = async (
     question?: string,
@@ -782,13 +805,10 @@ export function AiChatInterface({
                           aria-label={`Delete conversation: ${conversation.title}`}
                           title="Delete conversation"
                           onClick={() => {
-                            const confirmed = window.confirm(
-                              `Delete "${conversation.title}"? This cannot be undone.`,
-                            );
-
-                            if (confirmed) {
-                              deleteConversation(conversation.id);
-                            }
+                            setConversationToDelete({
+                              id: conversation.id,
+                              title: conversation.title,
+                            });
                           }}
                           className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-slate-400 transition hover:bg-red-50 hover:text-red-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 disabled:cursor-not-allowed disabled:opacity-40 dark:hover:bg-red-950/40 dark:hover:text-red-400"
                         >
@@ -807,6 +827,80 @@ export function AiChatInterface({
               </p>
             </div>
           </aside>
+        </div>
+      )}
+      {conversationToDelete && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/55 p-4 backdrop-blur-sm"
+          role="presentation"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget && !loading) {
+              setConversationToDelete(null);
+            }
+          }}
+        >
+          <div
+            role="alertdialog"
+            aria-modal="true"
+            aria-labelledby="delete-conversation-title"
+            aria-describedby="delete-conversation-description"
+            className="w-full max-w-md overflow-hidden rounded-2xl border border-border bg-background shadow-2xl"
+          >
+            <div className="p-5 sm:p-6">
+              <div className="flex items-start gap-4">
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-red-100 text-red-600 dark:bg-red-950/50 dark:text-red-400">
+                  <Trash2 size={21} />
+                </div>
+
+                <div className="min-w-0 flex-1">
+                  <h2
+                    id="delete-conversation-title"
+                    className="text-base font-semibold text-slate-900 dark:text-white"
+                  >
+                    Delete conversation?
+                  </h2>
+
+                  <p
+                    id="delete-conversation-description"
+                    className="mt-1 text-sm leading-6 text-slate-500 dark:text-slate-400"
+                  >
+                    This conversation and its messages will be permanently
+                    removed from your saved AI history.
+                  </p>
+                </div>
+              </div>
+
+              <div className="mt-5 rounded-xl border border-border bg-slate-50 px-4 py-3 dark:bg-slate-800/60">
+                <p className="break-words text-sm font-medium text-slate-800 dark:text-slate-200">
+                  {conversationToDelete.title}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex flex-col-reverse gap-2 border-t border-border bg-slate-50/70 px-5 py-4 sm:flex-row sm:justify-end sm:px-6 dark:bg-slate-800/30">
+              <button
+                type="button"
+                disabled={loading}
+                onClick={() => setConversationToDelete(null)}
+                className="inline-flex items-center justify-center rounded-xl border border-border bg-background px-4 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:opacity-50 dark:text-slate-200 dark:hover:bg-slate-800"
+              >
+                Cancel
+              </button>
+
+              <button
+                type="button"
+                disabled={loading}
+                onClick={() => {
+                  deleteConversation(conversationToDelete.id);
+                  setConversationToDelete(null);
+                }}
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-red-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-red-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <Trash2 size={15} />
+                Delete conversation
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
