@@ -1256,6 +1256,7 @@ async function callGeminiGenerateContent(
   options: {
     includeTools?: boolean;
     systemInstruction?: string;
+    model?: string;
   } = {},
 ): Promise<Record<string, unknown>> {
   const controller = new AbortController();
@@ -1292,7 +1293,7 @@ async function callGeminiGenerateContent(
     }
 
     const response = await fetch(
-      "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent",
+      `https://generativelanguage.googleapis.com/v1beta/models/${options.model ?? "gemini-3.1-flash-lite"}:generateContent`,
       {
         method: "POST",
         headers: {
@@ -1452,10 +1453,32 @@ RULES:
     }],
   });
 
-  const result = await callGeminiGenerateContent(apiKey, contents, {
-    includeTools: false,
-    systemInstruction: classifierInstruction,
-  });
+  let result: Record<string, unknown>;
+
+  try {
+    result = await callGeminiGenerateContent(apiKey, contents, {
+      includeTools: false,
+      systemInstruction: classifierInstruction,
+    });
+  } catch (primaryError) {
+    const errorMessage =
+      primaryError instanceof Error ? primaryError.message : "";
+
+    const isTransientServerError =
+      /status (500|502|503|504)\b/i.test(errorMessage);
+
+    if (!isTransientServerError) {
+      throw primaryError;
+    }
+
+    console.warn("Primary Gemini classifier unavailable; trying fallback model.");
+
+    result = await callGeminiGenerateContent(apiKey, contents, {
+      includeTools: false,
+      systemInstruction: classifierInstruction,
+      model: "gemini-3.5-flash",
+    });
+  }
 
   const candidates = Array.isArray(result.candidates)
     ? result.candidates
@@ -1795,10 +1818,36 @@ serve(async (req: Request) => {
     for (let round = 0; round <= MAX_TOOL_ROUNDS; round += 1) {
       stage = `gemini_request_round_${round + 1}`;
 
-      const response = await callGeminiGenerateContent(
-        geminiApiKey,
-        contents,
-      );
+      let response: Record<string, unknown>;
+
+      try {
+        response = await callGeminiGenerateContent(
+          geminiApiKey,
+          contents,
+        );
+      } catch (primaryError) {
+        const errorMessage =
+          primaryError instanceof Error ? primaryError.message : "";
+
+        const isTransientServerError =
+          /status (500|502|503|504)\b/i.test(errorMessage);
+
+        if (!isTransientServerError) {
+          throw primaryError;
+        }
+
+        console.warn(
+          `Primary Gemini generation unavailable in round ${round + 1}; trying fallback model.`,
+        );
+
+        response = await callGeminiGenerateContent(
+          geminiApiKey,
+          contents,
+          {
+            model: "gemini-3.5-flash",
+          },
+        );
+      }
 
       const candidates = Array.isArray(response.candidates)
         ? response.candidates
