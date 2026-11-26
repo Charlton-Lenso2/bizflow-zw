@@ -324,7 +324,7 @@ export function AppLayout({ children }: AppLayoutProps) {
   );
 
   return (
-    <div className="flex min-h-screen bg-background text-foreground">
+    <div className="flex min-h-screen bg-background text-foreground lg:h-dvh lg:min-h-0 lg:overflow-hidden">
       {mobileMenuOpen && (
         <button
           type="button"
@@ -337,14 +337,14 @@ export function AppLayout({ children }: AppLayoutProps) {
       <aside
         onMouseEnter={() => setSidebarHovered(true)}
         onMouseLeave={() => setSidebarHovered(false)}
-        className={`fixed inset-y-0 left-0 z-50 flex w-[276px] flex-col border-r border-border bg-[var(--app-card)] shadow-lg transition-[width,transform] duration-200 dark:bg-[var(--app-card)] lg:sticky lg:top-0 lg:z-20 lg:h-screen lg:translate-x-0 lg:shadow-none ${
+        className={`fixed inset-y-0 left-0 z-50 flex w-[276px] flex-col border-r border-border bg-[var(--app-card)] shadow-lg transition-[width,transform] duration-200 dark:bg-[var(--app-card)] lg:sticky lg:top-0 lg:z-20 lg:h-dvh lg:shrink-0 lg:self-start lg:translate-x-0 lg:shadow-none ${
           mobileMenuOpen ? "translate-x-0" : "-translate-x-full"
         } ${desktopExpanded ? "lg:w-[276px]" : "lg:w-[76px]"}`}
       >
         {sidebarContent}
       </aside>
 
-      <div className="flex min-h-screen min-w-0 flex-1 flex-col">
+      <div className="flex min-h-screen min-w-0 flex-1 flex-col lg:h-dvh lg:min-h-0 lg:overflow-hidden">
         <header className="sticky top-0 z-30 flex h-[68px] shrink-0 items-center justify-between border-b border-border bg-[var(--app-card)]/95 px-3 backdrop-blur-xl dark:bg-[var(--app-card)]/95 sm:px-5 lg:px-7">
           <div className="flex min-w-0 items-center gap-3">
             <button
@@ -579,7 +579,7 @@ export function AppLayout({ children }: AppLayoutProps) {
           </div>
         </header>
 
-        <main className="min-w-0 flex-1 p-3 sm:p-5 lg:p-7">{children}</main>
+        <main className="min-w-0 flex-1 p-3 sm:p-5 lg:p-7 lg:min-h-0 lg:overflow-y-auto lg:overscroll-y-contain">{children}</main>
       </div>
     </div>
   );

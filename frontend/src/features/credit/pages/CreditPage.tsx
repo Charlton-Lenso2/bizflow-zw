@@ -10,6 +10,8 @@ import {
   Wallet,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { MetricCard } from "../../../components/ui/MetricCard";
+import { Card } from "../../../components/ui/Card";
 import { useBusiness } from "../../business/hooks/useActiveBusiness";
 import { fetchCustomersWithFinancialSummary } from "../../customers/services/customerService";
 import type { CustomerSearchResult } from "../../customers/types/customer";
@@ -44,44 +46,6 @@ function getBalanceStatus(customer: CustomerSearchResult): CreditFilter {
   return "settled";
 }
 
-function MetricCard({
-  title,
-  value,
-  description,
-  icon: Icon,
-  accent = "blue",
-}: {
-  title: string;
-  value: string;
-  description: string;
-  icon: typeof Wallet;
-  accent?: "blue" | "green" | "amber" | "purple";
-}) {
-  const accents = {
-    blue: "bg-blue-500/10 text-blue-600 dark:text-blue-400",
-    green: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
-    amber: "bg-amber-500/10 text-amber-600 dark:text-amber-400",
-    purple: "bg-purple-500/10 text-purple-600 dark:text-purple-400",
-  };
-
-  return (
-    <div className="rounded-2xl border border-border bg-card p-5">
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <p className="text-sm font-medium text-muted-foreground">{title}</p>
-          <p className="mt-3 break-words text-2xl font-semibold tracking-tight text-foreground">
-            {value}
-          </p>
-          <p className="mt-1 text-xs text-muted-foreground">{description}</p>
-        </div>
-
-        <div className={`rounded-xl p-3 ${accents[accent]}`}>
-          <Icon className="h-5 w-5" />
-        </div>
-      </div>
-    </div>
-  );
-}
 
 export function CreditPage() {
   const { activeBusiness } = useBusiness();
@@ -278,28 +242,28 @@ export function CreditPage() {
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
               <MetricCard
-                title="Outstanding USD"
+                label="Outstanding USD"
                 value={formatMoney(summary.outstandingUsd, "USD")}
                 description="Total positive USD ledger balances"
                 icon={Wallet}
                 accent="blue"
               />
               <MetricCard
-                title="Outstanding ZWG"
+                label="Outstanding ZWG"
                 value={formatMoney(summary.outstandingZwg, "ZWG")}
                 description="Total positive ZWG ledger balances"
                 icon={Wallet}
                 accent="purple"
               />
               <MetricCard
-                title="Customers owing"
+                label="Customers owing"
                 value={String(summary.owingCustomers)}
                 description="Customers with a positive balance"
                 icon={Users}
                 accent="amber"
               />
               <MetricCard
-                title="Customer credits"
+                label="Customer credits"
                 value={String(summary.creditCustomers)}
                 description="Customers with a negative balance"
                 icon={ArrowDownRight}
@@ -309,7 +273,7 @@ export function CreditPage() {
           </section>
 
           <section className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-            <div className="rounded-2xl border border-border bg-card p-5">
+            <Card padding="md">
               <div className="flex items-center justify-between gap-3">
                 <div>
                   <p className="text-sm font-semibold text-foreground">
@@ -340,9 +304,9 @@ export function CreditPage() {
                   </p>
                 </div>
               </div>
-            </div>
+            </Card>
 
-            <div className="rounded-2xl border border-border bg-card p-5">
+            <Card padding="md">
               <div className="flex items-center justify-between gap-3">
                 <div>
                   <p className="text-sm font-semibold text-foreground">
@@ -373,7 +337,7 @@ export function CreditPage() {
                   </p>
                 </div>
               </div>
-            </div>
+            </Card>
           </section>
 
           <section className="overflow-hidden rounded-2xl border border-border bg-card">

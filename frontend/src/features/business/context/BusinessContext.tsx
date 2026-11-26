@@ -33,6 +33,7 @@ export function BusinessProvider({ children }: { children: ReactNode }) {
   const [activeBusinessId, setActiveBusinessId] = useState<string | null>(null);
   const [isLoadingData, setIsLoadingData] = useState(false);
   const [loadedUserId, setLoadedUserId] = useState<string | null>(null);
+  const [isBusinessSwitchLocked, setBusinessSwitchLocked] = useState(false);
 
   const refreshBusinesses = useCallback(async () => {
     if (!userId) {
@@ -222,6 +223,8 @@ export function BusinessProvider({ children }: { children: ReactNode }) {
       activeBusiness,
       activeBusinessId: userId ? activeBusinessId : null,
       isLoading,
+      isBusinessSwitchLocked,
+      setBusinessSwitchLocked,
       selectBusiness,
       refreshBusinesses,
       createBusiness,
@@ -232,8 +235,10 @@ export function BusinessProvider({ children }: { children: ReactNode }) {
       businesses,
       createBusiness,
       isLoading,
+      isBusinessSwitchLocked,
       refreshBusinesses,
       selectBusiness,
+      setBusinessSwitchLocked,
       userId,
     ],
   );

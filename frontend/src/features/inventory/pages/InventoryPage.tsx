@@ -1,10 +1,10 @@
+import { CustomSelect } from "../../../components/ui/CustomSelect";
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { AlertCircle, ArrowUpCircle, Boxes, ClipboardList, PackageSearch, TrendingDown, TrendingUp } from 'lucide-react'
 import { Alert } from '../../../components/ui/Alert'
 import { Button } from '../../../components/ui/Button'
 import { Input } from '../../../components/ui/Input'
 import { LoadingState } from '../../../components/ui/LoadingState'
-import { BusinessSelector } from '../../business/components/BusinessSelector'
 import { useBusiness } from '../../business/hooks/useActiveBusiness'
 import {
   canManageInventory,
@@ -373,7 +373,6 @@ export function InventoryPage() {
   if (!activeBusinessId) {
     return (
       <div className="space-y-6">
-        <BusinessSelector />
         <Alert variant="info" title="No active business selected">
           Pick a business from the selector to view inventory and stock movements.
         </Alert>
@@ -393,9 +392,6 @@ export function InventoryPage() {
         <div>
           <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">Operations</p>
           <h1 className="mt-2 text-2xl font-bold text-slate-900 dark:text-white">Inventory</h1>
-        </div>
-        <div className="w-full max-w-md md:w-auto">
-          <BusinessSelector />
         </div>
       </header>
 
@@ -465,17 +461,20 @@ export function InventoryPage() {
                   placeholder="Search stock"
                   className="min-w-[180px]"
                 />
-                <select
-                  value={statusFilter}
-                  onChange={(event) => setStatusFilter(event.target.value as (typeof statusOptions)[number]['value'])}
-                  className="rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
-                >
-                  {statusOptions.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
+                <CustomSelect
+  value={statusFilter}
+  onChange={(value) =>
+    setStatusFilter(
+      value as (typeof statusOptions)[number]["value"],
+    )
+  }
+  variant="filter"
+  ariaLabel="Filter inventory by stock status"
+  options={statusOptions.map((option) => ({
+    value: option.value,
+    label: option.label,
+  }))}
+/>
               </div>
             </div>
 
@@ -599,34 +598,50 @@ export function InventoryPage() {
                 <form className="mt-4 space-y-4" onSubmit={handleAdjustmentSubmit}>
                   <label className="block space-y-2 text-sm text-slate-700 dark:text-slate-200">
                     <span className="font-medium">Variant</span>
-                    <select
-                      value={adjustmentForm.variantId}
-                      onChange={(event) => setAdjustmentForm((current) => ({ ...current, variantId: event.target.value }))}
-                      className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-slate-900 shadow-sm outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
-                    >
-                      <option value="">Choose a variant</option>
-                      {variantOptions.map((variant) => (
-                        <option key={variant.id} value={variant.id}>
-                          {variant.product_name} · {getVariantSummaryLabel(variant.variant_name, variant.flavour, variant.bottle_size_ml)}
-                        </option>
-                      ))}
-                    </select>
+                    <CustomSelect
+  value={adjustmentForm.variantId}
+  onChange={(value) =>
+    setAdjustmentForm((current) => ({
+      ...current,
+      variantId: value,
+    }))
+  }
+  placeholder="Choose a variant"
+  searchable
+  searchPlaceholder="Search product variants..."
+  options={[
+    { value: "", label: "Choose a variant" },
+    ...variantOptions.map((variant) => ({
+      value: variant.id,
+      label: `${variant.product_name} · ${getVariantSummaryLabel(
+        variant.variant_name,
+        variant.flavour,
+        variant.bottle_size_ml,
+      )}`,
+    })),
+  ]}
+/>
                   </label>
 
                   <div className="grid gap-3 sm:grid-cols-2">
                     <label className="block space-y-2 text-sm text-slate-700 dark:text-slate-200">
                       <span className="font-medium">Direction</span>
-                      <select
-                        value={adjustmentForm.direction}
-                        onChange={(event) => {
-                          const nextDirection = event.target.value === 'decrease' ? 'decrease' : 'increase'
-                          setAdjustmentForm((current) => ({ ...current, direction: nextDirection }))
-                        }}
-                        className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-slate-900 shadow-sm outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
-                      >
-                        <option value="increase">Increase</option>
-                        <option value="decrease">Decrease</option>
-                      </select>
+                      <CustomSelect
+  value={adjustmentForm.direction}
+  onChange={(value) => {
+    const nextDirection =
+      value === "decrease" ? "decrease" : "increase";
+
+    setAdjustmentForm((current) => ({
+      ...current,
+      direction: nextDirection,
+    }));
+  }}
+  options={[
+    { value: "increase", label: "Increase" },
+    { value: "decrease", label: "Decrease" },
+  ]}
+/>
                     </label>
 
                     <Input
@@ -714,18 +729,29 @@ export function InventoryPage() {
             <form className="mt-4 space-y-4" onSubmit={handleOpeningStockSubmit}>
               <label className="block space-y-2 text-sm text-slate-700 dark:text-slate-200">
                 <span className="font-medium">Product variant</span>
-                <select
-                  value={openingForm.variantId}
-                  onChange={(event) => setOpeningForm((current) => ({ ...current, variantId: event.target.value }))}
-                  className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-slate-900 shadow-sm outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
-                >
-                  <option value="">Choose a variant</option>
-                  {variantOptions.map((variant) => (
-                    <option key={variant.id} value={variant.id}>
-                      {variant.product_name} · {getVariantSummaryLabel(variant.variant_name, variant.flavour, variant.bottle_size_ml)}
-                    </option>
-                  ))}
-                </select>
+                <CustomSelect
+  value={openingForm.variantId}
+  onChange={(value) =>
+    setOpeningForm((current) => ({
+      ...current,
+      variantId: value,
+    }))
+  }
+  placeholder="Choose a variant"
+  searchable
+  searchPlaceholder="Search product variants..."
+  options={[
+    { value: "", label: "Choose a variant" },
+    ...variantOptions.map((variant) => ({
+      value: variant.id,
+      label: `${variant.product_name} · ${getVariantSummaryLabel(
+        variant.variant_name,
+        variant.flavour,
+        variant.bottle_size_ml,
+      )}`,
+    })),
+  ]}
+/>
               </label>
 
               <Input
@@ -810,29 +836,40 @@ export function InventoryPage() {
             placeholder="Search history"
             className="min-w-[160px]"
           />
-          <select
-            value={movementVariantFilter}
-            onChange={(event) => setMovementVariantFilter(event.target.value)}
-            className="rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
-          >
-            <option value="all">All variants</option>
-            {variantOptions.map((variant) => (
-              <option key={variant.id} value={variant.id}>
-                {variant.product_name} · {getVariantSummaryLabel(variant.variant_name, variant.flavour, variant.bottle_size_ml)}
-              </option>
-            ))}
-          </select>
-          <select
-            value={movementFilter}
-            onChange={(event) => setMovementFilter(event.target.value as (typeof movementTypeOptions)[number]['value'])}
-            className="rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
-          >
-            {movementTypeOptions.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
+          <CustomSelect
+  value={movementVariantFilter}
+  onChange={setMovementVariantFilter}
+  variant="filter"
+  ariaLabel="Filter movements by variant"
+  placeholder="All variants"
+  searchable
+  searchPlaceholder="Search product variants..."
+  options={[
+    { value: "all", label: "All variants" },
+    ...variantOptions.map((variant) => ({
+      value: variant.id,
+      label: `${variant.product_name} · ${getVariantSummaryLabel(
+        variant.variant_name,
+        variant.flavour,
+        variant.bottle_size_ml,
+      )}`,
+    })),
+  ]}
+/>
+          <CustomSelect
+  value={movementFilter}
+  onChange={(value) =>
+    setMovementFilter(
+      value as (typeof movementTypeOptions)[number]["value"],
+    )
+  }
+  variant="filter"
+  ariaLabel="Filter by movement type"
+  options={movementTypeOptions.map((option) => ({
+    value: option.value,
+    label: option.label,
+  }))}
+/>
         </div>
 
         <div className="mt-4 space-y-3">

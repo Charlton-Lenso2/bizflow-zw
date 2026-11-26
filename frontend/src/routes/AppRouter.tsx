@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
+import { LandingPage } from "../features/landing/pages/LandingPage";
 import { LoginPage } from "../features/auth/pages/LoginPage";
 import { SignupPage } from "../features/auth/pages/SignupPage";
 import { BusinessOnboardingPage } from "../features/business/pages/BusinessOnboardingPage";
@@ -39,6 +40,7 @@ function PublicRoute({ children }: { children: ReactNode }) {
 export function AppRouter() {
   return (
     <Routes>
+      <Route path="/" element={<LandingPage />} />
       <Route
         path="/login"
         element={
@@ -186,8 +188,7 @@ export function AppRouter() {
           }
         />
 
-        <Route path="/" element={<Navigate to="/dashboard" replace />} />
-      </Route>
+        </Route>
 
       <Route path="*" element={<Navigate to="/login" replace />} />
     </Routes>

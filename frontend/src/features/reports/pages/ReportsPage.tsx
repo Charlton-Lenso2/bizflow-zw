@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
+import { MetricCard } from "../../../components/ui/MetricCard";
+import { Card } from "../../../components/ui/Card";
 import {
   Activity,
   CalendarDays,
@@ -100,47 +102,6 @@ function escapeCsv(value: string | number): string {
   return `"${text.replace(/"/g, '""')}"`;
 }
 
-function MetricCard({
-  label,
-  value,
-  description,
-  icon: Icon,
-}: {
-  label: string;
-  value: string;
-  description: string;
-  icon: typeof Activity;
-}) {
-  return (
-    <article className="min-w-0 rounded-2xl border border-border bg-white p-5 shadow-sm dark:bg-slate-900">
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
-            {label}
-          </p>
-          <p className="mt-3 break-words text-2xl font-bold tracking-tight text-slate-950 dark:text-white sm:text-3xl">
-            {value}
-          </p>
-        </div>
-
-        <span
-          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl"
-          style={{
-            backgroundColor:
-              "color-mix(in srgb, var(--brand-primary) 12%, transparent)",
-            color: "var(--brand-primary)",
-          }}
-        >
-          <Icon className="h-5 w-5" />
-        </span>
-      </div>
-
-      <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
-        {description}
-      </p>
-    </article>
-  );
-}
 
 export function ReportsPage() {
   const {
@@ -570,29 +531,33 @@ export function ReportsPage() {
             value={formatMoney(metrics.usd, "USD")}
             description={`${metrics.usdCount.toLocaleString()} completed USD sales`}
             icon={Wallet}
+            accent="brand"
           />
           <MetricCard
             label="Revenue · ZWG"
             value={formatMoney(metrics.zwg, "ZWG")}
             description={`${metrics.zwgCount.toLocaleString()} completed ZWG sales`}
             icon={TrendingUp}
+            accent="brand"
           />
           <MetricCard
             label="Completed transactions"
             value={completedSales.length.toLocaleString()}
             description="Across both currencies"
             icon={ShoppingCart}
+            accent="brand"
           />
           <MetricCard
             label="Active customers"
             value={customerPerformance.length.toLocaleString()}
             description="Customers with completed sales"
             icon={Activity}
+            accent="brand"
           />
         </div>
 
         <div className="mt-3 grid gap-3 sm:grid-cols-2">
-          <div className="rounded-2xl border border-border bg-white p-4 shadow-sm dark:bg-slate-900">
+          <Card padding="md">
             <p className="text-xs font-medium text-slate-500 dark:text-slate-400">
               Average completed sale · USD
             </p>
@@ -602,9 +567,9 @@ export function ReportsPage() {
             <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
               Based on {metrics.usdCount.toLocaleString()} USD transactions
             </p>
-          </div>
+          </Card>
 
-          <div className="rounded-2xl border border-border bg-white p-4 shadow-sm dark:bg-slate-900">
+          <Card padding="md">
             <p className="text-xs font-medium text-slate-500 dark:text-slate-400">
               Average completed sale · ZWG
             </p>
@@ -614,7 +579,7 @@ export function ReportsPage() {
             <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
               Based on {metrics.zwgCount.toLocaleString()} ZWG transactions
             </p>
-          </div>
+          </Card>
         </div>
       </section>
 
@@ -639,7 +604,7 @@ export function ReportsPage() {
       )}
 
       <section className="grid gap-6 xl:grid-cols-5">
-        <div className="min-w-0 overflow-hidden rounded-2xl border border-border bg-white shadow-sm dark:bg-slate-900 xl:col-span-3">
+        <Card padding="none" className="min-w-0 overflow-hidden xl:col-span-3">
           <div className="border-b border-border p-5">
             <h2 className="text-base font-bold text-slate-900 dark:text-white">
               Recent completed sales
@@ -718,9 +683,9 @@ export function ReportsPage() {
               </table>
             </div>
           )}
-        </div>
+        </Card>
 
-        <div className="min-w-0 overflow-hidden rounded-2xl border border-border bg-white shadow-sm dark:bg-slate-900 xl:col-span-2">
+        <Card padding="none" className="min-w-0 overflow-hidden xl:col-span-2">
           <div className="border-b border-border p-5">
             <h2 className="text-base font-bold text-slate-900 dark:text-white">
               Most active customers
@@ -787,7 +752,7 @@ export function ReportsPage() {
               ))}
             </div>
           )}
-        </div>
+        </Card>
       </section>
 
       <p className="text-xs text-slate-400 dark:text-slate-500">

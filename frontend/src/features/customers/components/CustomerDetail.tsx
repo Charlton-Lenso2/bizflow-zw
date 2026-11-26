@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { Card } from "../../../components/ui/Card"
 import { getCustomerStatus } from '../../customers/services/index'
 import type { CustomerDetailRow } from '../../customers/types/customer'
 
@@ -106,7 +107,9 @@ export function CustomerDetail({ customer }: CustomerDetailProps) {
         </div>
       </div>
 
-      <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+      <Card padding="md">
+
+      <section>
         <h2 className="mb-4 text-lg font-semibold text-slate-900 dark:text-white">
           Financial account
         </h2>
@@ -133,8 +136,10 @@ export function CustomerDetail({ customer }: CustomerDetailProps) {
           ))}
         </div>
       </section>
+      </Card>
+      <Card padding="md">
 
-      <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+      <section>
         <h2 className="mb-3 text-lg font-semibold text-slate-900 dark:text-white">
           Packaging account
         </h2>
@@ -180,8 +185,10 @@ export function CustomerDetail({ customer }: CustomerDetailProps) {
           </p>
         )}
       </section>
+      </Card>
+      <Card padding="md">
 
-      <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+      <section>
         <h2 className="mb-3 text-lg font-semibold text-slate-900 dark:text-white">
           Sales history
         </h2>
@@ -231,8 +238,10 @@ export function CustomerDetail({ customer }: CustomerDetailProps) {
           </p>
         )}
       </section>
+      </Card>
+      <Card padding="md">
 
-      <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+      <section>
         <h2 className="mb-3 text-lg font-semibold text-slate-900 dark:text-white">
           Payment history
         </h2>
@@ -284,9 +293,10 @@ export function CustomerDetail({ customer }: CustomerDetailProps) {
           </p>
         )}
       </section>
-
+      </Card>
       {adjustmentEntries.length > 0 ? (
-        <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+        <Card padding="md">
+        <section>
           <h2 className="mb-3 text-lg font-semibold text-slate-900 dark:text-white">
             Account adjustments
           </h2>
@@ -317,6 +327,7 @@ export function CustomerDetail({ customer }: CustomerDetailProps) {
             </table>
           </div>
         </section>
+        </Card>
       ) : null}
     </div>
   )

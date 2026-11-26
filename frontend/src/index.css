@@ -370,3 +370,64 @@
     scroll-behavior: auto !important;
   }
 }
+
+
+/* BizFlow shared select styling */
+select:not([multiple]) {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 100%;
+  min-height: 2.75rem;
+  padding: 0.625rem 2.75rem 0.625rem 0.875rem;
+  border: 1px solid var(--app-border);
+  border-radius: 0.75rem;
+  background-color: var(--app-input);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.875rem center;
+  background-size: 1rem;
+  color: var(--app-foreground);
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  transition: border-color 160ms ease, box-shadow 160ms ease, background-color 160ms ease;
+}
+
+.dark select:not([multiple]) {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+}
+
+select:not([multiple]):hover:not(:disabled) {
+  border-color: var(--app-border-strong);
+}
+
+select:not([multiple]):focus-visible {
+  border-color: var(--brand-primary);
+  outline: 2px solid var(--brand-primary);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand-primary) 16%, transparent);
+}
+
+select:not([multiple]):disabled {
+  cursor: not-allowed;
+  background-color: var(--app-surface-elevated);
+  color: var(--app-foreground-subtle);
+  opacity: 0.75;
+}
+
+select:not([multiple]) option {
+  background-color: var(--app-surface);
+  color: var(--app-foreground);
+}
+
+/* Preserve the POS exception-mode warning treatment. */
+select[class~="border-amber-300"]:not([multiple]) {
+  border-color: #fcd34d;
+  background-color: #fffbeb;
+  color: #92400e;
+}
+
+.dark select[class~="border-amber-300"]:not([multiple]) {
+  border-color: #92400e;
+  background-color: #451a03;
+  color: #fde68a;
+}

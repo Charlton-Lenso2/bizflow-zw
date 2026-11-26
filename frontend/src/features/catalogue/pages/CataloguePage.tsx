@@ -1,3 +1,4 @@
+import { CustomSelect } from "../../../components/ui/CustomSelect";
 import { useCallback, useEffect, useState, type FormEvent } from 'react'
 import { Boxes, PackageSearch, Plus } from 'lucide-react'
 import { Alert } from '../../../components/ui/Alert'
@@ -481,18 +482,25 @@ export function CataloguePage() {
 
                   <label className="block space-y-2 text-sm text-slate-700 dark:text-slate-200">
                     <span className="font-medium">Manufacturer</span>
-                    <select
-                      value={productForm.manufacturer_id}
-                      onChange={(event) => setProductForm((current) => ({ ...current, manufacturer_id: event.target.value }))}
-                      className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-slate-900 shadow-sm outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
-                    >
-                      <option value="">Manufacturer not assigned</option>
-                      {manufacturers.map((manufacturer) => (
-                        <option key={manufacturer.id} value={manufacturer.id}>
-                          {manufacturer.name ?? 'Manufacturer'}
-                        </option>
-                      ))}
-                    </select>
+                    <CustomSelect
+  value={productForm.manufacturer_id}
+  onChange={(value) =>
+    setProductForm((current) => ({
+      ...current,
+      manufacturer_id: value,
+    }))
+  }
+  placeholder="Manufacturer not assigned"
+  searchable
+  searchPlaceholder="Search manufacturers..."
+  options={[
+    { value: "", label: "Manufacturer not assigned" },
+    ...manufacturers.map((manufacturer) => ({
+      value: manufacturer.id,
+      label: manufacturer.name ?? "Manufacturer",
+    })),
+  ]}
+/>
                   </label>
                 </div>
 
@@ -631,18 +639,26 @@ export function CataloguePage() {
                 <div className="mt-5 grid gap-4 md:grid-cols-2">
                   <label className="block space-y-2 text-sm text-slate-700 dark:text-slate-200">
                     <span className="font-medium">Packaging type</span>
-                    <select
-                      value={packagingEditor.form.packaging_type_id}
-                      onChange={(event) => handlePackagingFieldChange('packaging_type_id', event.target.value)}
-                      className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-slate-900 shadow-sm outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
-                    >
-                      <option value="">Select packaging type</option>
-                      {packagingTypes.map((entry) => (
-                        <option key={entry.id} value={entry.id}>
-                          {entry.name} {entry.packaging_category ? `· ${entry.packaging_category}` : ''}
-                        </option>
-                      ))}
-                    </select>
+                    <CustomSelect
+  value={packagingEditor.form.packaging_type_id}
+  onChange={(value) =>
+    handlePackagingFieldChange("packaging_type_id", value)
+  }
+  placeholder="Select packaging type"
+  searchable
+  searchPlaceholder="Search packaging types..."
+  options={[
+    { value: "", label: "Select packaging type" },
+    ...packagingTypes.map((entry) => ({
+      value: entry.id,
+      label: `${entry.name} ${
+        entry.packaging_category
+          ? `· ${entry.packaging_category}`
+          : ""
+      }`,
+    })),
+  ]}
+/>
                   </label>
 
                   <Input

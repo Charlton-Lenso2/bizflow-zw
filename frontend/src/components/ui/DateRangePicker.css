@@ -1,0 +1,294 @@
+
+@import "@daypicker/react/style.css";
+
+.bizflow-date-popover {
+  position: fixed;
+  z-index: 10000;
+  display: flex;
+  flex-direction: column;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  background: #fff;
+  color: #334155;
+  box-shadow:
+    0 20px 45px -15px rgb(15 23 42 / 20%),
+    0 8px 16px -8px rgb(15 23 42 / 12%);
+  animation: bizflow-calendar-enter 140ms ease-out;
+  transform-origin: top center;
+}
+
+.dark .bizflow-date-popover {
+  border-color: #334155;
+  background: #0f172a;
+  color: #cbd5e1;
+  box-shadow: 0 20px 50px -15px rgb(0 0 0 / 50%);
+}
+
+.bizflow-calendar {
+  width: 100%;
+  color: #334155;
+  font-size: 12px;
+}
+
+.dark .bizflow-calendar {
+  color: #cbd5e1;
+}
+
+.bizflow-calendar__root {
+  width: 100%;
+}
+
+.bizflow-calendar__months {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+}
+
+.bizflow-calendar__month {
+  min-width: 0;
+  flex: 1;
+}
+
+.bizflow-calendar__month-caption {
+  position: relative;
+  display: flex;
+  min-height: 38px;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 12px;
+}
+
+.bizflow-calendar__caption-label {
+  color: #0f172a;
+  font-size: 13px;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+}
+
+.dark .bizflow-calendar__caption-label {
+  color: #f8fafc;
+}
+
+.bizflow-calendar__nav {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  pointer-events: none;
+}
+
+.bizflow-calendar__nav-button {
+  display: inline-flex;
+  width: 34px;
+  height: 34px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  color: #64748b;
+  background: #fff;
+  pointer-events: auto;
+  transition:
+    background-color 120ms ease,
+    border-color 120ms ease,
+    color 120ms ease;
+}
+
+.bizflow-calendar__nav-button:hover {
+  border-color: #cbd5e1;
+  background: #f8fafc;
+  color: #0f172a;
+}
+
+.dark .bizflow-calendar__nav-button {
+  border-color: #334155;
+  color: #94a3b8;
+  background: #0f172a;
+}
+
+.dark .bizflow-calendar__nav-button:hover {
+  border-color: #475569;
+  background: #1e293b;
+  color: #f8fafc;
+}
+
+.bizflow-calendar__month-grid {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 3px;
+}
+
+.bizflow-calendar__weekdays {
+  height: 30px;
+}
+
+.bizflow-calendar__weekday {
+  color: #94a3b8;
+  font-size: 10px;
+  font-weight: 650;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.dark .bizflow-calendar__weekday {
+  color: #64748b;
+}
+
+.bizflow-calendar__week {
+  height: 38px;
+}
+
+.bizflow-calendar__day {
+  position: relative;
+  width: 36px;
+  height: 38px;
+  padding: 0;
+  text-align: center;
+}
+
+.bizflow-calendar__day-button {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  width: 36px;
+  height: 36px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  color: #334155;
+  background: transparent;
+  font-size: 12px;
+  font-weight: 500;
+  transition:
+    background-color 120ms ease,
+    color 120ms ease,
+    border-color 120ms ease;
+}
+
+.bizflow-calendar__day-button:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+
+.dark .bizflow-calendar__day-button {
+  color: #cbd5e1;
+}
+
+.dark .bizflow-calendar__day-button:hover {
+  background: #1e293b;
+  color: #fff;
+}
+
+.bizflow-calendar__range-middle {
+  background: color-mix(in srgb, var(--brand-primary) 10%, white);
+}
+
+.dark .bizflow-calendar__range-middle {
+  background: color-mix(in srgb, var(--brand-primary) 18%, #0f172a);
+}
+
+.bizflow-calendar__range-middle .bizflow-calendar__day-button {
+  border-radius: 0;
+  color: #334155;
+}
+
+.dark .bizflow-calendar__range-middle .bizflow-calendar__day-button {
+  color: #e2e8f0;
+}
+
+.bizflow-calendar__range-start,
+.bizflow-calendar__range-end {
+  background: transparent;
+}
+
+.bizflow-calendar__range-start .bizflow-calendar__day-button,
+.bizflow-calendar__range-end .bizflow-calendar__day-button,
+.bizflow-calendar__selected .bizflow-calendar__day-button {
+  border-color: transparent;
+  border-radius: 9px;
+  color: #fff;
+  background: var(--brand-primary);
+  font-weight: 700;
+}
+
+.bizflow-calendar__today:not(.bizflow-calendar__range-start):not(.bizflow-calendar__range-end):not(.bizflow-calendar__selected)
+  .bizflow-calendar__day-button {
+  border-color: var(--brand-primary);
+  color: var(--brand-primary);
+  font-weight: 700;
+}
+
+.dark
+  .bizflow-calendar__today:not(.bizflow-calendar__range-start):not(.bizflow-calendar__range-end):not(.bizflow-calendar__selected)
+  .bizflow-calendar__day-button {
+  color: #fff;
+}
+
+.bizflow-calendar__outside .bizflow-calendar__day-button {
+  color: #cbd5e1;
+}
+
+.dark .bizflow-calendar__outside .bizflow-calendar__day-button {
+  color: #475569;
+}
+
+.bizflow-calendar__disabled .bizflow-calendar__day-button {
+  cursor: not-allowed;
+  opacity: 0.3;
+}
+
+.bizflow-calendar__hidden {
+  visibility: hidden;
+}
+
+@keyframes bizflow-calendar-enter {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.99);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (max-width: 640px) {
+  .bizflow-date-popover {
+    border-radius: 14px;
+  }
+
+  .bizflow-calendar__months {
+    gap: 0;
+  }
+
+  .bizflow-calendar__month {
+    width: 100%;
+  }
+
+  .bizflow-calendar__day,
+  .bizflow-calendar__week {
+    height: 40px;
+  }
+
+  .bizflow-calendar__day-button {
+    width: 38px;
+    height: 38px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bizflow-date-popover {
+    animation: none;
+  }
+
+  .bizflow-calendar__day-button,
+  .bizflow-calendar__nav-button {
+    transition: none;
+  }
+}

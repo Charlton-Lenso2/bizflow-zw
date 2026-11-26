@@ -1,3 +1,4 @@
+import { CustomSelect } from "../../../components/ui/CustomSelect";
 import { useEffect, useRef, useState } from "react";
 import { ImageUp, Sparkles } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -217,17 +218,17 @@ export function BusinessOnboardingPage() {
               <span className="text-sm font-medium text-slate-700 dark:text-slate-200">
                 Business type *
               </span>
-              <select
-                value={businessType}
-                onChange={(event) => setBusinessType(event.target.value)}
-                disabled={Boolean(createdBusiness)}
-                className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 disabled:bg-slate-100 dark:border-slate-700 dark:bg-slate-950 dark:text-white dark:disabled:bg-slate-800"
-              >
-                <option value="wholesale">Wholesale</option>
-                <option value="retail">Retail</option>
-                <option value="distribution">Distribution</option>
-                <option value="other">Other</option>
-              </select>
+              <CustomSelect
+  value={businessType}
+  onChange={setBusinessType}
+  disabled={Boolean(createdBusiness)}
+  options={[
+    { value: "wholesale", label: "Wholesale" },
+    { value: "retail", label: "Retail" },
+    { value: "distribution", label: "Distribution" },
+    { value: "other", label: "Other" },
+  ]}
+/>
             </label>
 
             <label className="block space-y-2">
@@ -261,17 +262,17 @@ export function BusinessOnboardingPage() {
               <span className="text-sm font-medium text-slate-700 dark:text-slate-200">
                 Default currency
               </span>
-              <select
-                value={defaultCurrency}
-                onChange={(event) =>
-                  setDefaultCurrency(event.target.value as "USD" | "ZWG")
-                }
-                disabled={Boolean(createdBusiness)}
-                className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 disabled:bg-slate-100 dark:border-slate-700 dark:bg-slate-950 dark:text-white dark:disabled:bg-slate-800"
-              >
-                <option value="USD">USD — US Dollar</option>
-                <option value="ZWG">ZWG — Zimbabwe Gold</option>
-              </select>
+              <CustomSelect
+  value={defaultCurrency}
+  onChange={(value) =>
+    setDefaultCurrency(value as "USD" | "ZWG")
+  }
+  disabled={Boolean(createdBusiness)}
+  options={[
+    { value: "USD", label: "USD — US Dollar" },
+    { value: "ZWG", label: "ZWG — Zimbabwe Gold" },
+  ]}
+/>
             </label>
           </section>
 

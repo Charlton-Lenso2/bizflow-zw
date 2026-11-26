@@ -113,6 +113,7 @@ async function fetchRecentSales(businessId: string): Promise<Row[]> {
     .from("sales")
     .select("id, sale_number, currency, total_amount, status, created_at")
     .eq("business_id", businessId)
+    .eq("status", COMPLETED_SALE_STATUS)
     .order("created_at", { ascending: false })
     .limit(10);
 
@@ -266,6 +267,7 @@ export async function fetchTodaySalesSummary(
       .from("sales")
       .select("currency, total_amount, status, created_at")
       .eq("business_id", businessId)
+      .eq("status", COMPLETED_SALE_STATUS)
       .gte("created_at", start.toISOString())
       .lt("created_at", endExclusive.toISOString())
       .order("created_at", { ascending: true })
@@ -291,8 +293,6 @@ export async function fetchTodaySalesSummary(
     }
 
     if (rows.length < PAGE_SIZE) break;
-
-    offset += rows.length;
   }
 
   return summary;
@@ -320,6 +320,7 @@ export async function fetchSalesTrend(
       .from("sales")
       .select("currency, total_amount, status, created_at")
       .eq("business_id", businessId)
+      .eq("status", COMPLETED_SALE_STATUS)
       .gte("created_at", start.toISOString())
       .lt("created_at", endExclusive.toISOString())
       .order("created_at", { ascending: true })

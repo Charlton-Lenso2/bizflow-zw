@@ -7,6 +7,15 @@ import type {
   PackagingType,
 } from "../types/packaging";
 
+export type PackagingCategory = "bottle" | "crate" | "other";
+
+export type CreatePackagingTypeInput = {
+  businessId: string;
+  name: string;
+  packagingCategory: PackagingCategory;
+  isReturnable: boolean;
+};
+
 type PackagingTypeRow = {
   id: string;
   name: string;
@@ -18,6 +27,55 @@ function ensureBusinessScope(businessId: string): void {
   if (!businessId) {
     throw new Error("Select a business before accessing packaging management.");
   }
+}
+
+export async function createPackagingType({
+  businessId,
+  name,
+  packagingCategory,
+  isReturnable,
+}: CreatePackagingTypeInput): Promise<PackagingType> {
+  ensureBusinessScope(businessId);
+
+  const normalizedName = name.trim();
+
+  if (!normalizedName) {
+    throw new Error("Enter a packaging type name.");
+  }
+
+  const { data, error } = await supabase
+    .from("packaging_types")
+    .insert({
+      business_id: businessId,
+      name: normalizedName,
+      packaging_category: packagingCategory,
+      is_returnable: isReturnable,
+      is_active: true,
+    })
+    .select("id, name, packaging_category, is_active")
+    .single();
+
+  if (error) {
+    if (error.code === "23505") {
+      throw new Error(
+        "A packaging type with this name already exists for this business.",
+      );
+    }
+
+    if (error.code === "42501") {
+      throw new Error(
+        "You do not have permission to create packaging types. Ask a business owner or administrator.",
+      );
+    }
+
+    throw new Error(`Failed to create packaging type: ${error.message}`);
+  }
+
+  return {
+    id: data.id,
+    name: data.name,
+    packaging_category: data.packaging_category,
+  };
 }
 
 export async function fetchPackagingDashboardData(

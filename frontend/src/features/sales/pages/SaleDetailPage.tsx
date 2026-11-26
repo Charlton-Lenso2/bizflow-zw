@@ -1,3 +1,4 @@
+import { CustomSelect } from "../../../components/ui/CustomSelect";
 import { useEffect, useMemo, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { CreditCard, Printer, Wallet } from 'lucide-react'
@@ -298,15 +299,19 @@ export function SaleDetailPage() {
 
             <label className="block text-sm text-slate-700 dark:text-slate-200">
               <span className="mb-1 block">Payment method</span>
-              <select
-                value={paymentForm.paymentMethod}
-                onChange={(event) => setPaymentForm((current) => ({ ...current, paymentMethod: event.target.value }))}
-                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
-              >
-                {PAYMENT_OPTIONS.map((option) => (
-                  <option key={option} value={option}>{option.replace(/_/g, ' ')}</option>
-                ))}
-              </select>
+              <CustomSelect
+  value={paymentForm.paymentMethod}
+  onChange={(value) =>
+    setPaymentForm((current) => ({
+      ...current,
+      paymentMethod: value,
+    }))
+  }
+  options={PAYMENT_OPTIONS.map((option) => ({
+    value: option,
+    label: option.replace(/_/g, " "),
+  }))}
+/>
             </label>
 
             <label className="block text-sm text-slate-700 dark:text-slate-200">

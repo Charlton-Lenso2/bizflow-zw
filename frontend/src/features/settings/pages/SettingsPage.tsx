@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { Save, UserRound } from "lucide-react";
+import { Card } from "../../../components/ui/Card";
 import { Alert } from "../../../components/ui/Alert";
 import { LoadingState } from "../../../components/ui/LoadingState";
 import { BrandingPanel } from "../../business/components/BrandingPanel";
@@ -58,10 +59,8 @@ function PersonalProfileForm({
   };
 
   return (
-    <section
-      id="profile"
-      className="scroll-mt-24 rounded-2xl border border-border bg-white p-5 shadow-sm dark:bg-slate-900 sm:p-6"
-    >
+    <Card padding="none" className="scroll-mt-24">
+      <section id="profile" className="p-5 sm:p-6">
       <div className="flex items-start gap-3">
         <div
           className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl"
@@ -165,7 +164,8 @@ function PersonalProfileForm({
           </button>
         </div>
       </form>
-    </section>
+      </section>
+    </Card>
   );
 }
 
@@ -209,7 +209,8 @@ export function SettingsPage() {
 
       {activeBusiness ? (
         <>
-          <section className="rounded-2xl border border-border bg-white p-5 dark:bg-slate-900 sm:p-6">
+          <Card padding="none">
+            <section className="p-5 sm:p-6">
             <div className="mb-5">
               <h2 className="text-base font-bold text-slate-900 dark:text-white">
                 Business details
@@ -256,7 +257,8 @@ export function SettingsPage() {
                 </p>
               </div>
             </div>
-          </section>
+            </section>
+          </Card>
 
           <BrandingPanel key={activeBusiness.id} business={activeBusiness} />
         </>

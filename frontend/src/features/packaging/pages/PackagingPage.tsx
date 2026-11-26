@@ -1,16 +1,24 @@
+import { CustomSelect } from "../../../components/ui/CustomSelect";
+import { MetricCard } from "../../../components/ui/MetricCard";
 import { useEffect, useMemo, useState } from "react";
+import type { FormEvent } from "react";
 import {
   AlertCircle,
   ArrowDownLeft,
   ArrowLeftRight,
   Boxes,
   Package,
+  Plus,
   RefreshCw,
   Search,
   Users,
 } from "lucide-react";
 import { useBusiness } from "../../business/hooks/useActiveBusiness";
-import { fetchPackagingDashboardData } from "../services/packagingService";
+import {
+  createPackagingType,
+  fetchPackagingDashboardData,
+  type PackagingCategory,
+} from "../services/packagingService";
 import type {
   PackagingBalance,
   PackagingCustomer,
@@ -60,38 +68,6 @@ function formatDate(value: string | null | undefined): string {
   }).format(date);
 }
 
-function MetricCard({
-  label,
-  value,
-  description,
-  icon: Icon,
-}: {
-  label: string;
-  value: string;
-  description: string;
-  icon: typeof Package;
-}) {
-  return (
-    <div className="rounded-2xl border border-border bg-white p-5 shadow-sm dark:bg-slate-900">
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
-            {label}
-          </p>
-          <p className="mt-3 text-2xl font-bold tracking-tight text-slate-950 dark:text-white">
-            {value}
-          </p>
-          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-            {description}
-          </p>
-        </div>
-        <div className="rounded-xl bg-slate-100 p-3 dark:bg-slate-800">
-          <Icon className="h-5 w-5 text-slate-600 dark:text-slate-300" />
-        </div>
-      </div>
-    </div>
-  );
-}
 
 export function PackagingPage() {
   const {
@@ -106,6 +82,13 @@ export function PackagingPage() {
   const [search, setSearch] = useState("");
   const [balanceFilter, setBalanceFilter] = useState<BalanceFilter>("all");
   const [packagingTypeFilter, setPackagingTypeFilter] = useState("all");
+  const [newPackagingName, setNewPackagingName] = useState("");
+  const [newPackagingCategory, setNewPackagingCategory] =
+    useState<PackagingCategory>("bottle");
+  const [newPackagingReturnable, setNewPackagingReturnable] = useState(true);
+  const [isCreatingPackagingType, setIsCreatingPackagingType] = useState(false);
+  const [packagingFormError, setPackagingFormError] = useState<string | null>(null);
+  const [packagingFormSuccess, setPackagingFormSuccess] = useState<string | null>(null);
 
   useEffect(() => {
     if (!activeBusinessId) return;
@@ -144,6 +127,50 @@ export function PackagingPage() {
       cancelled = true;
     };
   }, [activeBusinessId]);
+
+  async function handleCreatePackagingType(
+    event: FormEvent<HTMLFormElement>,
+  ) {
+    event.preventDefault();
+
+    if (!activeBusinessId) {
+      setPackagingFormError("Select a business before creating a packaging type.");
+      return;
+    }
+
+    if (!newPackagingName.trim()) {
+      setPackagingFormError("Enter a packaging type name.");
+      return;
+    }
+
+    setIsCreatingPackagingType(true);
+    setPackagingFormError(null);
+    setPackagingFormSuccess(null);
+
+    try {
+      const created = await createPackagingType({
+        businessId: activeBusinessId,
+        name: newPackagingName,
+        packagingCategory: newPackagingCategory,
+        isReturnable: newPackagingReturnable,
+      });
+
+      const refreshedData = await fetchPackagingDashboardData(activeBusinessId);
+      setData(refreshedData);
+      setNewPackagingName("");
+      setNewPackagingCategory("bottle");
+      setNewPackagingReturnable(true);
+      setPackagingFormSuccess(`${created.name} was created successfully.`);
+    } catch (err) {
+      setPackagingFormError(
+        err instanceof Error
+          ? err.message
+          : "Could not create the packaging type. Please try again.",
+      );
+    } finally {
+      setIsCreatingPackagingType(false);
+    }
+  }
 
   const customerMap = useMemo(
     () => new Map(data.customers.map((customer) => [customer.id, customer])),
@@ -358,18 +385,20 @@ export function PackagingPage() {
               />
             </div>
 
-            <select
-              value={packagingTypeFilter}
-              onChange={(event) => setPackagingTypeFilter(event.target.value)}
-              className="w-full rounded-xl border border-border bg-white px-3 py-2.5 text-sm text-slate-700 outline-none focus:border-[var(--brand-primary)] dark:bg-slate-950 dark:text-slate-200"
-            >
-              <option value="all">All packaging types</option>
-              {data.packagingTypes.map((type) => (
-                <option key={type.id} value={type.id}>
-                  {type.name}
-                </option>
-              ))}
-            </select>
+            <CustomSelect
+  value={packagingTypeFilter}
+  onChange={setPackagingTypeFilter}
+  variant="filter"
+  ariaLabel="Filter by packaging type"
+  placeholder="All packaging types"
+  options={[
+    { value: "all", label: "All packaging types" },
+    ...data.packagingTypes.map((type) => ({
+      value: type.id,
+      label: type.name,
+    })),
+  ]}
+/>
           </div>
         </div>
 
@@ -582,6 +611,115 @@ export function PackagingPage() {
             Packaging definitions configured for this business.
           </p>
         </div>
+
+        <form
+          onSubmit={handleCreatePackagingType}
+          className="mt-5 rounded-xl border border-border bg-slate-50 p-4 dark:bg-slate-950/50"
+        >
+          <div className="mb-4 flex items-center gap-2">
+            <div className="rounded-lg bg-white p-2 shadow-sm dark:bg-slate-800">
+              <Plus className="h-4 w-4 text-slate-700 dark:text-slate-200" />
+            </div>
+            <div>
+              <h3 className="text-sm font-semibold text-slate-900 dark:text-white">
+                Create packaging type
+              </h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                Define bottles, crates or other packaging used by this business.
+              </p>
+            </div>
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="sm:col-span-2">
+              <label
+                htmlFor="new-packaging-name"
+                className="mb-1.5 block text-xs font-medium text-slate-700 dark:text-slate-300"
+              >
+                Packaging name
+              </label>
+              <input
+                id="new-packaging-name"
+                type="text"
+                value={newPackagingName}
+                onChange={(event) => setNewPackagingName(event.target.value)}
+                placeholder="e.g. Empty 300ml Glass Bottle"
+                maxLength={100}
+                required
+                className="w-full rounded-lg border border-border bg-white px-3 py-2.5 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/15 dark:bg-slate-900 dark:text-white"
+              />
+            </div>
+
+            <div>
+              <label
+                htmlFor="new-packaging-category"
+                className="mb-1.5 block text-xs font-medium text-slate-700 dark:text-slate-300"
+              >
+                Category
+              </label>
+              <CustomSelect
+  id="new-packaging-category"
+  value={newPackagingCategory}
+  onChange={(value) =>
+    setNewPackagingCategory(value as PackagingCategory)
+  }
+  ariaLabel="Packaging category"
+  options={[
+    { value: "bottle", label: "Bottle" },
+    { value: "crate", label: "Crate" },
+    { value: "other", label: "Other" },
+  ]}
+/>
+            </div>
+
+            <div className="flex items-end">
+              <label className="flex min-h-10 w-full cursor-pointer items-center gap-2 rounded-lg border border-border bg-white px-3 py-2.5 text-sm text-slate-700 dark:bg-slate-900 dark:text-slate-300">
+                <input
+                  type="checkbox"
+                  checked={newPackagingReturnable}
+                  onChange={(event) =>
+                    setNewPackagingReturnable(event.target.checked)
+                  }
+                  className="h-4 w-4 rounded border-border accent-blue-600"
+                />
+                Returnable packaging
+              </label>
+            </div>
+          </div>
+
+          {packagingFormError && (
+            <p className="mt-3 flex items-start gap-2 text-sm text-red-600 dark:text-red-400">
+              <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+              {packagingFormError}
+            </p>
+          )}
+
+          {packagingFormSuccess && (
+            <p className="mt-3 text-sm text-emerald-700 dark:text-emerald-400">
+              {packagingFormSuccess}
+            </p>
+          )}
+
+          <div className="mt-4 flex justify-end">
+            <button
+              type="submit"
+              disabled={isCreatingPackagingType || !activeBusinessId}
+              className="inline-flex items-center justify-center gap-2 rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200"
+            >
+              {isCreatingPackagingType ? (
+                <>
+                  <RefreshCw className="h-4 w-4 animate-spin" />
+                  Creating...
+                </>
+              ) : (
+                <>
+                  <Plus className="h-4 w-4" />
+                  Create packaging type
+                </>
+              )}
+            </button>
+          </div>
+        </form>
 
         {isLoading ? (
           <p className="py-8 text-center text-sm text-slate-500 dark:text-slate-400">

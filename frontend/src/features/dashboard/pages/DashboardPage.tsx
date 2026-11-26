@@ -1,5 +1,4 @@
 import { lazy, Suspense, useEffect, useState } from "react";
-import type { ReactNode } from "react";
 import {
   Activity,
   ArrowUpRight,
@@ -14,6 +13,7 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Alert } from "../../../components/ui/Alert";
+import { MetricCard } from "../../../components/ui/MetricCard";
 import { LoadingState } from "../../../components/ui/LoadingState";
 import { BusinessSelector } from "../../business/components/BusinessSelector";
 import { useBusiness } from "../../business/hooks/useActiveBusiness";
@@ -25,15 +25,37 @@ import {
   fetchTodaySalesSummary,
 } from "../services/dashboardService";
 import type { DashboardSummary, SalesTrendPoint } from "../types/dashboard";
+import { DateRangePicker } from "../../../components/ui/DateRangePicker";
 
 const SalesTrendChart = lazy(() => import("../components/SalesTrendChart"));
-
-type DatePreset = "today" | "week" | "month" | "90days" | "custom";
 
 type CreditSummary = {
   usd: number;
   zwg: number;
 };
+
+type AsyncResource<T> =
+  | {
+      key: string;
+      status: "success";
+      data: T;
+    }
+  | {
+      key: string;
+      status: "error";
+      error: string;
+    };
+
+type TodaySalesSummary = {
+  usd: number;
+  zwg: number;
+  usdCount: number;
+  zwgCount: number;
+};
+
+function getErrorMessage(error: unknown, fallback: string) {
+  return error instanceof Error ? error.message : fallback;
+}
 
 function toDateString(date: Date) {
   const year = date.getFullYear();
@@ -43,27 +65,17 @@ function toDateString(date: Date) {
   return `${year}-${month}-${day}`;
 }
 
-function getRange(preset: Exclude<DatePreset, "custom">) {
+function getInitialRange() {
   const now = new Date();
   const end = toDateString(now);
-  const startDate = new Date(now);
+  const start = new Date(now);
 
-  switch (preset) {
-    case "today":
-      return { start: end, end };
+  start.setDate(now.getDate() - now.getDay());
 
-    case "week":
-      startDate.setDate(now.getDate() - now.getDay());
-      return { start: toDateString(startDate), end };
-
-    case "month":
-      startDate.setDate(1);
-      return { start: toDateString(startDate), end };
-
-    case "90days":
-      startDate.setDate(now.getDate() - 89);
-      return { start: toDateString(startDate), end };
-  }
+  return {
+    start: toDateString(start),
+    end,
+  };
 }
 
 function getGreeting() {
@@ -83,46 +95,6 @@ function formatCurrency(value: number, currency: "USD" | "ZWG") {
   }).format(value);
 }
 
-const presets: { label: string; value: DatePreset }[] = [
-  { label: "Today", value: "today" },
-  { label: "This week", value: "week" },
-  { label: "This month", value: "month" },
-  { label: "90 days", value: "90days" },
-];
-
-function MetricCard({
-  label,
-  value,
-  description,
-  icon: Icon,
-}: {
-  label: string;
-  value: ReactNode;
-  description: string;
-  icon: typeof Boxes;
-}) {
-  return (
-    <div className="min-w-0 rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900 sm:p-5">
-      <div className="flex items-center justify-between gap-3">
-        <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
-          {label}
-        </p>
-
-        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300">
-          <Icon className="h-[18px] w-[18px]" />
-        </div>
-      </div>
-
-      <div className="mt-4 min-h-[52px]">
-        {value}
-
-        <p className="mt-2 text-xs leading-relaxed text-slate-500 dark:text-slate-400">
-          {description}
-        </p>
-      </div>
-    </div>
-  );
-}
 
 function ActionLink({
   title,
@@ -164,63 +136,173 @@ export function DashboardPage() {
   const navigate = useNavigate();
   const { user, profile } = useAuth();
 
-  const {
-    activeBusinessId,
-    isLoading: isBusinessLoading,
-  } = useBusiness();
+  const { activeBusinessId, isLoading: isBusinessLoading } = useBusiness();
 
-  const [summary, setSummary] = useState<DashboardSummary | null>(null);
-  const [todaySales, setTodaySales] = useState<{
-    usd: number;
-    zwg: number;
-    usdCount: number;
-    zwgCount: number;
-  } | null>(null);
+  const [summaryResource, setSummaryResource] =
+    useState<AsyncResource<DashboardSummary> | null>(null);
 
-  const [creditSummary, setCreditSummary] = useState<CreditSummary | null>(
-    null,
-  );
-  const [salesTrend, setSalesTrend] = useState<SalesTrendPoint[]>([]);
+  const [todaySalesResource, setTodaySalesResource] =
+    useState<AsyncResource<TodaySalesSummary> | null>(null);
 
-  const [isLoadingSummary, setIsLoadingSummary] = useState(true);
-  const [isLoadingTrend, setIsLoadingTrend] = useState(true);
+  const [creditResource, setCreditResource] =
+    useState<AsyncResource<CreditSummary> | null>(null);
 
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [creditError, setCreditError] = useState<string | null>(null);
-  const [trendError, setTrendError] = useState<string | null>(null);
+  const [trendResource, setTrendResource] = useState<AsyncResource<
+    SalesTrendPoint[]
+  > | null>(null);
 
-  const [preset, setPreset] = useState<DatePreset>("week");
-  const initialRange = getRange("week");
+  const initialRange = getInitialRange();
+
   const [startDate, setStartDate] = useState(initialRange.start);
   const [endDate, setEndDate] = useState(initialRange.end);
 
   const displayName =
     profile?.full_name?.trim() || user?.email?.split("@")[0] || "there";
 
+  const summaryResourceForBusiness =
+    activeBusinessId && summaryResource?.key === activeBusinessId
+      ? summaryResource
+      : null;
+
+  const todaySalesResourceForBusiness =
+    activeBusinessId && todaySalesResource?.key === activeBusinessId
+      ? todaySalesResource
+      : null;
+
+  const creditResourceForBusiness =
+    activeBusinessId && creditResource?.key === activeBusinessId
+      ? creditResource
+      : null;
+
+  const summary =
+    summaryResourceForBusiness?.status === "success"
+      ? summaryResourceForBusiness.data
+      : null;
+
+  const todaySales =
+    todaySalesResourceForBusiness?.status === "success"
+      ? todaySalesResourceForBusiness.data
+      : null;
+
+  const creditSummary =
+    creditResourceForBusiness?.status === "success"
+      ? creditResourceForBusiness.data
+      : null;
+
+  const errorMessage =
+    summaryResourceForBusiness?.status === "error"
+      ? summaryResourceForBusiness.error
+      : null;
+
+  const salesError =
+    todaySalesResourceForBusiness?.status === "error"
+      ? todaySalesResourceForBusiness.error
+      : null;
+
+  const creditError =
+    creditResourceForBusiness?.status === "error"
+      ? creditResourceForBusiness.error
+      : null;
+
+  const isLoadingSummary = Boolean(
+    activeBusinessId && !summaryResourceForBusiness,
+  );
+
+  const isLoadingTodaySales = Boolean(
+    activeBusinessId && !todaySalesResourceForBusiness,
+  );
+
+  const isLoadingCredit = Boolean(
+    activeBusinessId && !creditResourceForBusiness,
+  );
+
+  const isValidTrendRange =
+    Boolean(startDate) && Boolean(endDate) && startDate <= endDate;
+
+  const trendKey =
+    activeBusinessId && isValidTrendRange
+      ? `${activeBusinessId}:${startDate}:${endDate}`
+      : null;
+
+  const trendResourceForSelection =
+    trendKey && trendResource?.key === trendKey ? trendResource : null;
+
+  const salesTrend =
+    trendResourceForSelection?.status === "success"
+      ? trendResourceForSelection.data
+      : [];
+
+  const trendError =
+    trendResourceForSelection?.status === "error"
+      ? trendResourceForSelection.error
+      : null;
+
+  const isLoadingTrend = Boolean(
+    activeBusinessId && isValidTrendRange && !trendResourceForSelection,
+  );
+
   useEffect(() => {
-    if (!activeBusinessId) {
-      return;
+    if (!activeBusinessId) return;
+
+    let cancelled = false;
+    const businessId = activeBusinessId;
+
+    async function loadDashboardSummary() {
+      try {
+        const result = await fetchDashboardSummary(businessId);
+
+        if (!cancelled) {
+          setSummaryResource({
+            key: businessId,
+            status: "success",
+            data: result,
+          });
+        }
+      } catch (error) {
+        if (!cancelled) {
+          setSummaryResource({
+            key: businessId,
+            status: "error",
+            error: getErrorMessage(
+              error,
+              "Unable to load your business overview.",
+            ),
+          });
+        }
+      }
     }
 
-    const businessId = activeBusinessId;
-    let cancelled = false;
-
-    async function loadDashboard() {
-      setIsLoadingSummary(true);
-      setErrorMessage(null);
-      setCreditError(null);
-
+    async function loadTodaySales() {
       try {
-        const [dashboard, sales, customers] = await Promise.all([
-          fetchDashboardSummary(businessId),
-          fetchTodaySalesSummary(businessId),
-          fetchCustomersWithFinancialSummary(businessId, ""),
-        ]);
+        const result = await fetchTodaySalesSummary(businessId);
 
-        if (cancelled) return;
+        if (!cancelled) {
+          setTodaySalesResource({
+            key: businessId,
+            status: "success",
+            data: result,
+          });
+        }
+      } catch (error) {
+        if (!cancelled) {
+          setTodaySalesResource({
+            key: businessId,
+            status: "error",
+            error: getErrorMessage(
+              error,
+              "Unable to load today's sales summary.",
+            ),
+          });
+        }
+      }
+    }
 
-        setSummary(dashboard);
-        setTodaySales(sales);
+    async function loadCreditSummary() {
+      try {
+        const customers = await fetchCustomersWithFinancialSummary(
+          businessId,
+          "",
+        );
 
         const outstanding: CreditSummary = {
           usd: 0,
@@ -228,30 +310,42 @@ export function DashboardPage() {
         };
 
         for (const customer of customers) {
-          const usd = customer.current_outstanding_balance_usd;
-          const zwg = customer.current_outstanding_balance_zwg;
+          const usd = Number(customer.current_outstanding_balance_usd ?? 0);
+          const zwg = Number(customer.current_outstanding_balance_zwg ?? 0);
 
-          if (usd > 0) outstanding.usd += usd;
-          if (zwg > 0) outstanding.zwg += zwg;
+          if (Number.isFinite(usd) && usd > 0) {
+            outstanding.usd += usd;
+          }
+
+          if (Number.isFinite(zwg) && zwg > 0) {
+            outstanding.zwg += zwg;
+          }
         }
 
-        setCreditSummary(outstanding);
+        if (!cancelled) {
+          setCreditResource({
+            key: businessId,
+            status: "success",
+            data: outstanding,
+          });
+        }
       } catch (error) {
         if (!cancelled) {
-          setErrorMessage(
-            error instanceof Error
-              ? error.message
-              : "Unable to load your business overview.",
-          );
-        }
-      } finally {
-        if (!cancelled) {
-          setIsLoadingSummary(false);
+          setCreditResource({
+            key: businessId,
+            status: "error",
+            error: getErrorMessage(
+              error,
+              "Unable to load customer credit balances.",
+            ),
+          });
         }
       }
     }
 
-    void loadDashboard();
+    void loadDashboardSummary();
+    void loadTodaySales();
+    void loadCreditSummary();
 
     return () => {
       cancelled = true;
@@ -259,34 +353,33 @@ export function DashboardPage() {
   }, [activeBusinessId]);
 
   useEffect(() => {
-    if (!activeBusinessId || !startDate || !endDate) return;
+    if (!activeBusinessId || !isValidTrendRange || !trendKey) return;
+
+    let cancelled = false;
 
     const businessId = activeBusinessId;
     const rangeStart = startDate;
     const rangeEnd = endDate;
-    let cancelled = false;
+    const requestKey = trendKey;
 
     async function loadTrend() {
-      setIsLoadingTrend(true);
-      setTrendError(null);
-
       try {
         const result = await fetchSalesTrend(businessId, rangeStart, rangeEnd);
 
         if (!cancelled) {
-          setSalesTrend(result);
+          setTrendResource({
+            key: requestKey,
+            status: "success",
+            data: result,
+          });
         }
       } catch (error) {
         if (!cancelled) {
-          setTrendError(
-            error instanceof Error
-              ? error.message
-              : "Unable to load sales performance.",
-          );
-        }
-      } finally {
-        if (!cancelled) {
-          setIsLoadingTrend(false);
+          setTrendResource({
+            key: requestKey,
+            status: "error",
+            error: getErrorMessage(error, "Unable to load sales performance."),
+          });
         }
       }
     }
@@ -296,26 +389,13 @@ export function DashboardPage() {
     return () => {
       cancelled = true;
     };
-  }, [activeBusinessId, startDate, endDate]);
+  }, [activeBusinessId, startDate, endDate, isValidTrendRange, trendKey]);
 
-  function handlePresetChange(nextPreset: DatePreset) {
-    setPreset(nextPreset);
+  function handleDateRangeApply(nextStart: string, nextEnd: string) {
+    if (nextStart > nextEnd) return;
 
-    if (nextPreset === "custom") return;
-
-    const range = getRange(nextPreset);
-    setStartDate(range.start);
-    setEndDate(range.end);
-  }
-
-  function handleStartDateChange(value: string) {
-    setPreset("custom");
-    setStartDate(value);
-  }
-
-  function handleEndDateChange(value: string) {
-    setPreset("custom");
-    setEndDate(value);
+    setStartDate(nextStart);
+    setEndDate(nextEnd);
   }
 
   if (isBusinessLoading || (activeBusinessId && isLoadingSummary)) {
@@ -373,32 +453,56 @@ export function DashboardPage() {
             <MetricCard
               label="Today's revenue"
               value={
-                <div className="space-y-1.5">
-                  <p className="text-xl font-semibold tracking-tight text-slate-950 dark:text-white">
-                    {formatCurrency(todaySales?.usd ?? 0, "USD")}
+                isLoadingTodaySales ? (
+                  <p className="text-sm text-slate-500 dark:text-slate-400">
+                    Loading sales...
                   </p>
+                ) : todaySales ? (
+                  <div className="space-y-1.5">
+                    <p className="text-xl font-semibold tracking-tight text-slate-950 dark:text-white">
+                      {formatCurrency(todaySales.usd, "USD")}
+                    </p>
 
-                  <p className="text-sm font-medium text-slate-600 dark:text-slate-300">
-                    {formatCurrency(todaySales?.zwg ?? 0, "ZWG")}
+                    <p className="text-sm font-medium text-slate-600 dark:text-slate-300">
+                      {formatCurrency(todaySales.zwg, "ZWG")}
+                    </p>
+                  </div>
+                ) : (
+                  <p className="text-sm font-medium text-rose-600 dark:text-rose-400">
+                    Unavailable
                   </p>
-                </div>
+                )
               }
-              description={`${todaySales?.usdCount ?? 0} USD · ${todaySales?.zwgCount ?? 0} ZWG transactions`}
+              description={
+                todaySales
+                  ? `${todaySales.usdCount} USD · ${todaySales.zwgCount} ZWG transactions`
+                  : "Today's transaction summary"
+              }
               icon={TrendingUp}
             />
 
             <MetricCard
               label="Outstanding credit"
               value={
-                <div className="space-y-1.5">
-                  <p className="text-xl font-semibold tracking-tight text-slate-950 dark:text-white">
-                    {formatCurrency(creditSummary?.usd ?? 0, "USD")}
+                isLoadingCredit ? (
+                  <p className="text-sm text-slate-500 dark:text-slate-400">
+                    Loading balances...
                   </p>
+                ) : creditSummary ? (
+                  <div className="space-y-1.5">
+                    <p className="text-xl font-semibold tracking-tight text-slate-950 dark:text-white">
+                      {formatCurrency(creditSummary.usd, "USD")}
+                    </p>
 
-                  <p className="text-sm font-medium text-slate-600 dark:text-slate-300">
-                    {formatCurrency(creditSummary?.zwg ?? 0, "ZWG")}
+                    <p className="text-sm font-medium text-slate-600 dark:text-slate-300">
+                      {formatCurrency(creditSummary.zwg, "ZWG")}
+                    </p>
+                  </div>
+                ) : (
+                  <p className="text-sm font-medium text-rose-600 dark:text-rose-400">
+                    Unavailable
                   </p>
-                </div>
+                )
               }
               description="Customer balances currently owed"
               icon={Wallet}
@@ -424,14 +528,26 @@ export function DashboardPage() {
             <MetricCard
               label="Completed today"
               value={
-                <p className="text-2xl font-semibold tracking-tight text-slate-950 dark:text-white">
-                  {(todaySales?.usdCount ?? 0) + (todaySales?.zwgCount ?? 0)}
-                </p>
+                isLoadingTodaySales ? (
+                  <p className="text-sm text-slate-500 dark:text-slate-400">
+                    Loading...
+                  </p>
+                ) : todaySales ? (
+                  <p className="text-2xl font-semibold tracking-tight text-slate-950 dark:text-white">
+                    {todaySales.usdCount + todaySales.zwgCount}
+                  </p>
+                ) : (
+                  <p className="text-sm font-medium text-rose-600 dark:text-rose-400">
+                    Unavailable
+                  </p>
+                )
               }
               description="Completed transactions today"
               icon={ShoppingCart}
             />
           </section>
+
+          {salesError && <Alert variant="error">{salesError}</Alert>}
 
           {creditError && <Alert variant="error">{creditError}</Alert>}
 
@@ -480,69 +596,38 @@ export function DashboardPage() {
                 </p>
               </div>
 
-              <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
-                <div className="inline-flex flex-wrap items-center gap-1 rounded-xl border border-slate-200 bg-white p-1 dark:border-slate-800 dark:bg-slate-900">
-                  {presets.map((item) => (
-                    <button
-                      key={item.value}
-                      type="button"
-                      onClick={() => handlePresetChange(item.value)}
-                      className={`rounded-lg px-3 py-2 text-xs font-medium transition ${
-                        preset === item.value
-                          ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900"
-                          : "text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800"
-                      }`}
-                    >
-                      {item.label}
-                    </button>
-                  ))}
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <input
-                    type="date"
-                    aria-label="Sales trend start date"
-                    value={startDate}
-                    max={endDate}
-                    onChange={(event) =>
-                      handleStartDateChange(event.target.value)
-                    }
-                    className="h-10 min-w-0 rounded-xl border border-slate-200 bg-white px-3 text-xs text-slate-700 outline-none transition focus:border-slate-400 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300"
-                  />
-
-                  <span className="text-xs text-slate-400">to</span>
-
-                  <input
-                    type="date"
-                    aria-label="Sales trend end date"
-                    value={endDate}
-                    min={startDate}
-                    onChange={(event) =>
-                      handleEndDateChange(event.target.value)
-                    }
-                    className="h-10 min-w-0 rounded-xl border border-slate-200 bg-white px-3 text-xs text-slate-700 outline-none transition focus:border-slate-400 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300"
-                  />
-                </div>
-              </div>
+              <DateRangePicker
+                startDate={startDate}
+                endDate={endDate}
+                onApply={handleDateRangeApply}
+              />
             </div>
 
             {trendError && <Alert variant="error">{trendError}</Alert>}
 
-            <Suspense
-              fallback={
-                <div className="flex min-h-[320px] items-center justify-center rounded-xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
-                  <LoadingState message="Loading sales performance..." />
-                </div>
-              }
-            >
-              {isLoadingTrend ? (
-                <div className="flex min-h-[320px] items-center justify-center rounded-xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
-                  <LoadingState message="Loading sales performance..." />
-                </div>
-              ) : (
-                <SalesTrendChart data={salesTrend} />
-              )}
-            </Suspense>
+            {activeBusinessId && isValidTrendRange && (
+              <Suspense
+                fallback={
+                  <div className="flex min-h-[320px] items-center justify-center rounded-xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
+                    <LoadingState message="Loading sales performance..." />
+                  </div>
+                }
+              >
+                {isLoadingTrend ? (
+                  <div className="flex min-h-[320px] items-center justify-center rounded-xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
+                    <LoadingState message="Loading sales performance..." />
+                  </div>
+                ) : (
+                  <SalesTrendChart data={salesTrend} />
+                )}
+              </Suspense>
+            )}
+
+            {!isValidTrendRange && (
+              <Alert variant="info">
+                Select a valid date range to view sales performance.
+              </Alert>
+            )}
           </section>
 
           <section className="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
