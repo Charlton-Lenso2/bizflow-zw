@@ -39,7 +39,7 @@ export function CustomerList({ customers, filters, onFilterChange, onView, onEdi
 
   return (
     <div>
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="mb-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="relative w-full sm:max-w-sm">
           <input
             type="text"
